@@ -1,27 +1,30 @@
-require('dotenv').config(); // <- ISSO PRECISA SER A PRIMEIRA COISA!
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Configuração do Supabase (agora com segurança)
+// AJUSTE DE SEGURANÇA:
+// Se as variáveis estiverem vazias, o servidor não deve tentar criar o cliente, 
+// pois isso causará o erro "supabaseUrl is required".
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error("ERRO CRÍTICO: Variáveis do Supabase não encontradas!");
+let supabase;
+if (supabaseUrl && supabaseKey) {
+    supabase = createClient(supabaseUrl, supabaseKey);
+    console.log("✅ Supabase conectado com sucesso!");
+} else {
+    console.error("❌ ERRO: Variáveis SUPABASE_URL ou SUPABASE_KEY não encontradas no ambiente!");
 }
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 
-// Rota 1: Iniciar geração
+// Rota 1: Gerar
 app.post('/api/generate', async (req, res) => {
   try {
     const response = await fetch('https://api.replicate.com/v1/models/black-forest-labs/flux-2-pro/predictions', {
@@ -39,7 +42,7 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-// Rota 2: Status (Polling)
+// Rota 2: Status
 app.get('/api/status/:id', async (req, res) => {
   try {
     const response = await fetch(`https://api.replicate.com/v1/predictions/${req.params.id}`, {
@@ -54,8 +57,9 @@ app.get('/api/status/:id', async (req, res) => {
 
 // Rota 3: Descontar Crédito
 app.post('/descontar-credito', async (req, res) => {
+  if (!supabase) return res.status(500).json({ erro: 'Banco de dados não conectado' });
+  
   const { userId } = req.body; 
-
   if (!userId) return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
 
   const { data: usuario, error: erroBusca } = await supabase
