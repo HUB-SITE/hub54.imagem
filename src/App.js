@@ -53,7 +53,7 @@ export default function App() {
         input.input_images = [inputImage]; 
       }
 
-      const response = await fetch('http://localhost:3001/api/generate', {
+      const response = await fetch('https://backend-gerador-ia.onrender.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ export default function App() {
 
       while (prediction.status !== 'succeeded' && prediction.status !== 'failed') {
         await new Promise(resolve => setTimeout(resolve, 1000));
-        const getResponse = await fetch(`http://localhost:3001/api/status/${prediction.id}`);
+        const getResponse = await fetch(`https://backend-gerador-ia.onrender.com}`);
         prediction = await getResponse.json();
       }
 
