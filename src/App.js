@@ -133,7 +133,7 @@ export default function App() {
       const input = { prompt: prompt, aspect_ratio: aspectRatio };
       if (inputImage) { input.input_images = [inputImage]; }
 
-      const response = await fetch('https://backend-gerador-ia.onrender.com', {
+      const response = await fetch('https://backend-gerador-ia.onrender.com/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ input }), 
@@ -147,7 +147,7 @@ export default function App() {
       while (prediction.status !== 'succeeded' && prediction.status !== 'failed') {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const getResponse = await fetch(`https://backend-gerador-ia.onrender.com}`);
+        const getResponse = await fetch(`https://backend-gerador-ia.onrender.com/api/status/${prediction.id}`);
         prediction = await getResponse.json();
       }
 
