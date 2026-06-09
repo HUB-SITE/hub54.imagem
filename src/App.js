@@ -220,7 +220,7 @@ export default function App() {
                 HUB IA 54
               </h1>
               <p className="text-xl text-gray-300 font-light tracking-widest">
-                Geração de Imagens com Inteligência Artificial
+                Plataforma Focada em Inteligência Artificial
               </p>
             </div>
 
