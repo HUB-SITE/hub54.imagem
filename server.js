@@ -43,7 +43,7 @@ app.post('/api/webhook/clerk', express.raw({ type: 'application/json' }), async 
       const { error } = await supabase
         .from('users')
         .insert([
-          { id: id, email_cadastro: email, creditos: 10, is_admin: false }
+          { id: id, email: email, creditos: 10, is_admin: false }
         ]);
 
       if (error) {
