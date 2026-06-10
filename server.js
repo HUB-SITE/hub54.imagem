@@ -6,7 +6,15 @@ const { Webhook } = require('svix'); // <--- Importação da biblioteca de segur
 
 const app = express();
 app.use(cors());
+const path = require('path');
 
+// Serve os arquivos estáticos da pasta build do React
+app.use(express.static(path.join(__dirname, 'build')));
+
+// Qualquer rota que não seja /api, devolve o index.html do React
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 // =========================================================================
 // ⚠️ ROTA DO WEBHOOK: PRECISA FICAR AQUI, ANTES DO express.json()
 // O Svix precisa do corpo "cru" (raw) para validar a assinatura do Clerk.
