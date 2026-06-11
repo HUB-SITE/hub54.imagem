@@ -70,9 +70,7 @@ app.post('/api/generate', async (req, res) => {
 
 // 3. ESTATÍSTICOS
 app.use(express.static(path.join(__dirname, 'build')));
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) {
-    return next(); // Deixa as rotas de API funcionarem normalmente
-  }
+
+app.get(/^(?!\/api).+/, (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
