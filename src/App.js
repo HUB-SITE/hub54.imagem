@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Download, Play, RotateCcw, AlertTriangle, Loader2 } from 'lucide-react';
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from "@clerk/clerk-react"; // Importação correta
 
 export default function App() {
+  // A linha abaixo é o coração da autenticação. Sem ela, o userId não existe!
+  const { userId } = useAuth(); 
+  
   const [prompt, setPrompt] = useState('');
   const [aspectRatio, setAspectRatio] = useState('1:1');
   const [inputImage, setInputImage] = useState(null);
-  
   const [generatedImage, setGeneratedImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -16,110 +18,16 @@ export default function App() {
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // Rede Neural Animada
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const particles = [];
-    const particleCount = 50;
-
-    // Criar partículas
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 2,
-        vy: (Math.random() - 0.5) * 2,
-        radius: Math.random() * 2 + 1,
-      });
-    }
-
-    const animate = () => {
-      // Fundo transparente
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Atualizar partículas
-      particles.forEach((p) => {
-        p.x += p.vx;
-        p.y += p.vy;
-
-        // Bounce nas bordas
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-        // Desenhar partícula
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Glow efeito
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius * 2, 0, Math.PI * 2);
-        ctx.stroke();
-      });
-
-      // Desenhar linhas de conexão
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-      ctx.lineWidth = 1;
-
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          if (distance < 150) {
-            ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.stroke();
-          }
-        }
-      }
-
-      requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    // Resize handler
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => setInputImage(event.target.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const resetInputs = () => {
-    setPrompt('');
-    setAspectRatio('1:1');
-    setInputImage(null);
-  };
+  // ... (Mantenha o seu useEffect e a Rede Neural aqui, como estavam) ...
 
   const generateImage = async () => {
     if (!prompt) {
       setError('O campo prompt é obrigatório.');
+      return;
+    }
+    
+    if (!userId) {
+      setError('Você precisa estar logado para gerar imagens.');
       return;
     }
 
@@ -133,10 +41,14 @@ export default function App() {
       const input = { prompt: prompt, aspect_ratio: aspectRatio };
       if (inputImage) { input.input_images = [inputImage]; }
 
+      // ÚNICA CHAMADA FETCH (Correta)
       const response = await fetch('https://backend-gerador-ia.onrender.com/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input }), 
+        body: JSON.stringify({ 
+          input: input, 
+          userId: userId 
+        }), 
       });
 
       if (!response.ok) throw new Error(`Erro do servidor: ${response.status}`);
@@ -144,19 +56,19 @@ export default function App() {
       let prediction = await response.json();
       setProgressText('Gerando imagem...');
 
+      // Loop de verificação de status
       while (prediction.status !== 'succeeded' && prediction.status !== 'failed') {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const getResponse = await fetch(`https://backend-gerador-ia.onrender.com/api/status/${prediction.id}`);
         prediction = await getResponse.json();
       }
-
       if (prediction.status === 'succeeded') {
         const outputUrl = Array.isArray(prediction.output) ? prediction.output[0] : prediction.output;
         setGeneratedImage(outputUrl);
         setGenerationTime(((Date.now() - startTime) / 1000).toFixed(1));
       } else {
-        throw new Error('Falha na geração.');
+        throw new Error('Falha na geração da IA.');
       }
     } catch (err) {
       setError(err.message);
@@ -165,6 +77,8 @@ export default function App() {
       setProgressText('');
     }
   };
+
+  // ... (Mantenha o resto do código igual a partir daqui: downloadImage, return, etc.)
 
   const downloadImage = async () => {
     if (!generatedImage) return;
