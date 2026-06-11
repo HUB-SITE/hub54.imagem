@@ -77,7 +77,19 @@ export default function App() {
       setProgressText('');
     }
   };
+const handleImageUpload = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setInputImage(e.target.files[0]);
+    }
+  };
 
+  const resetInputs = () => {
+    setPrompt('');
+    setInputImage(null);
+    setGeneratedImage(null);
+    setError(null);
+    setGenerationTime(null);
+  };
   // ... (Mantenha o resto do código igual a partir daqui: downloadImage, return, etc.)
 
   const downloadImage = async () => {
