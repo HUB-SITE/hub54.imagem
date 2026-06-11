@@ -14,28 +14,44 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json({ limit: '50mb' })); 
-
+// 1. INICIALIZA O BANCO DE DADOS PRIMEIRO
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 
-// 1. WEBHOOK CLERK
+// 2. WEBHOOK CLERK (TEM QUE VIR ANTES DO EXPRESS.JSON)
 app.post('/api/webhook/clerk', express.raw({ type: 'application/json' }), async (req, res) => {
+  console.log("📨 Webhook recebido do Clerk!");
   try {
     const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
+    // Verifica a assinatura com o texto bruto
     const evt = wh.verify(req.body, req.headers);
+
+    console.log("✅ Assinatura verificada! Evento:", evt.type);
 
     if (evt.type === 'user.created') {
       const { id, email_addresses } = evt.data;
-      await supabase.from('users').insert([{ id, email: email_addresses[0].email_address, creditos: 10, is_admin: false }]);
+      const email = email_addresses[0].email_address;
+      
+      console.log(`💾 Salvando usuário no Supabase: ${email}`);
+
+      const { error } = await supabase.from('users').insert([
+        { id: id, email: email, creditos: 10, is_admin: false }
+      ]);
+
+      if (error) console.error("❌ Erro no Supabase:", error);
+      else console.log("🎉 Usuário salvo com sucesso!");
     }
     return res.status(200).json({ success: true });
   } catch (err) {
+    console.error("❌ Erro na assinatura do Webhook:", err.message);
     return res.status(400).json({ error: "Webhook inválido" });
   }
 });
 
-// 2. ROTA DE GERAÇÃO
+// 3. AGORA SIM, HABILITA O JSON PARA O RESTO DO SITE (GERAÇÃO DE IMAGENS)
+app.use(express.json({ limit: '50mb' })); 
+
+// 4. ROTA DE GERAÇÃO
 app.post('/api/generate', async (req, res) => {
   try {
     const { input, userId } = req.body;
@@ -70,7 +86,7 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-// 2.1 ROTA DE STATUS (Conserta o erro 404)
+// 5. ROTA DE STATUS
 app.get('/api/status/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -87,7 +103,7 @@ app.get('/api/status/:id', async (req, res) => {
   }
 });
 
-// 3. ESTATÍSTICOS E REACT
+// 6. ESTATÍSTICOS E REACT
 app.use(express.static(path.join(__dirname, 'build')));
 
 app.use((req, res, next) => {
