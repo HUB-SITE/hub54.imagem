@@ -7,7 +7,12 @@ const path = require('path');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: '*', // Se preferir segurança extra, substitua '*' pela URL da sua Vercel
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 app.use(express.json({ limit: '50mb' })); 
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
