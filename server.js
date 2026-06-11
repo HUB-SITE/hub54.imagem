@@ -70,6 +70,6 @@ app.post('/api/generate', async (req, res) => {
 
 // 3. ESTATÍSTICOS
 app.use(express.static(path.join(__dirname, 'build')));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'build', 'index.html')));
-
-app.listen(3000, () => console.log('🚀 Servidor rodando na porta 3000'));
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
