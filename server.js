@@ -70,13 +70,21 @@ app.post('/api/generate', async (req, res) => {
 
 // 3. ESTATÍSTICOS
 
-app.use(express.static(path.join(__dirname, 'build')));
-// Esta rota serve o index.html apenas se o arquivo solicitado não existir na pasta build
-// Isso evita que o Express tente processar rotas que ele não deve.
+const buildPath = path.join(__dirname, 'build');
+console.log("📍 Servindo arquivos estáticos de:", buildPath);
+
+app.use(express.static(buildPath));
+
 app.use((req, res, next) => {
   if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+    const indexPath = path.join(buildPath, 'index.html');
+    console.log("📄 Tentando servir index.html em:", indexPath);
+    res.sendFile(indexPath);
   } else {
     next();
   }
 });
+
+// ESCUTA COM TRATAMENTO DE ERRO
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
