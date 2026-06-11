@@ -69,20 +69,17 @@ app.post('/api/generate', async (req, res) => {
 });
 
 // 3. ESTATÍSTICOS
+// 1. Servir arquivos estáticos (JS, CSS, imagens)
+app.use(express.static(path.join(__dirname, 'build')));
 
-const buildPath = path.join(__dirname, 'build');
-console.log("📍 Servindo arquivos estáticos de:", buildPath);
-
-app.use(express.static(buildPath));
-
+// 2. Middleware de Roteamento EXCLUSIVO para o React
 app.use((req, res, next) => {
-  if (!req.path.startsWith('/api')) {
-    const indexPath = path.join(buildPath, 'index.html');
-    console.log("📄 Tentando servir index.html em:", indexPath);
-    res.sendFile(indexPath);
-  } else {
-    next();
+  // Se a rota começa com /api, ignora este middleware e deixa a rota ser processada normalmente
+  if (req.path.startsWith('/api')) {
+    return next();
   }
+  // Caso contrário, entrega o index.html
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 // ESCUTA COM TRATAMENTO DE ERRO
