@@ -340,4 +340,6 @@ export default function App() {
                   <button onClick={resetInputs} disabled={loading} className="flex-1 py-3 px-4 border border-white/40 text-white hover:border-white/70 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all">
                     <RotateCcw className="w-4 h-4 inline mr-1" /> Limpar
                   </button>
-                  <button onClick={generateImage} disabled={loading || !prompt} className="flex-[2] py-3 bg-white text-black font-bold rounded-lg text-sm uppercase tracking-wide cursor-pointer disabled:opacity-50 transition-all" style={{boxShadow: '0 0 20px rgba(255,255,255,0.
+              <div key={i} className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 border-2 border-white flex items-center justify-center text-2xl md:text-3xl font-bold text-white rounded-lg transition-all hover:scale-110" style={{ boxShadow: '0 0 20px rgba(255,255,255,0.4), inset 0 0 20px rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}>
+                  {letter}
+                </div>
