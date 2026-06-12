@@ -51,7 +51,7 @@ app.post('/api/webhook/clerk', express.raw({ type: 'application/json' }), async 
 // 3. AGORA SIM, HABILITA O JSON PARA O RESTO DO SITE (GERAÇÃO DE IMAGENS)
 app.use(express.json({ limit: '50mb' })); 
 
-// 4. ROTA DE GERAÇÃO
+// 4. ROTA DE GERAÇÃO (Atualizada para guardar no banco de dados)
 app.post('/api/generate', async (req, res) => {
   try {
     const { input, userId } = req.body;
@@ -86,10 +86,13 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-// 5. ROTA DE STATUS
+// 5. ROTA DE STATUS (Atualizada para salvar na tabela 'images' quando tiver sucesso)
 app.get('/api/status/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    // Captura o userId que pode vir como query param para sabermos de quem é a imagem
+    const userId = req.query.userId; 
+
     const response = await fetch(`https://api.replicate.com/v1/predictions/${id}`, {
       headers: { 
         'Authorization': `Bearer ${REPLICATE_API_TOKEN}`,
@@ -97,9 +100,43 @@ app.get('/api/status/:id', async (req, res) => {
       },
     });
     const data = await response.json();
+
+    // Se a imagem terminou de gerar com sucesso, guardamos no Supabase
+    if (data.status === 'succeeded' && userId) {
+      const outputUrl = Array.isArray(data.output) ? data.output[0] : data.output;
+      const promptDigitado = data.input?.prompt || 'Sem prompt';
+
+      // Evita duplicados verificando se já guardamos esta predição antes
+      const { data: existente } = await supabase.from('images').select('id').eq('image_url', outputUrl).maybeSingle();
+      
+      if (!existente) {
+        await supabase.from('images').insert([
+          { user_id: userId, prompt: promptDigitado, image_url: outputUrl }
+        ]);
+        console.log(`💾 Imagem guardada no histórico para o usuário: ${userId}`);
+      }
+    }
+
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: 'Erro ao consultar status.' });
+  }
+});
+
+// 5.1 NOVA ROTA: BUSCAR O HISTÓRICO DO UTILIZADOR
+app.get('/api/history/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { data, error } = await supabase
+      .from('images')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao buscar histórico.' });
   }
 });
 
