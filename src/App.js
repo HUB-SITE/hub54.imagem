@@ -140,7 +140,7 @@ export default function App() {
     });
   };
 
-  // 4. Lógica de Geração da Imagem
+  // 4. Lógica de Geração da Imagem (Atualizada com input_images e prompt_strength)
   const generateImage = async () => {
     if (!prompt) { setError('O campo prompt é obrigatório.'); return; }
     if (!userId) { setError('Tem de iniciar sessão para gerar imagens.'); return; }
@@ -158,8 +158,10 @@ export default function App() {
       if (inputImage) {
         setProgressText('A processar imagem base...');
         const base64Image = await fileToBase64(inputImage);
-        inputPayload.image_prompt = base64Image;
-        inputPayload.image = base64Image;
+        
+        // CORREÇÃO CRÍTICA PARA O FLUX-2-PRO:
+        inputPayload.input_images = [base64Image];
+        inputPayload.prompt_strength = 0.75; 
       }
 
       setProgressText('A enviar para a IA...');
@@ -177,7 +179,6 @@ export default function App() {
       // Loop para verificar o estado da geração na Replicate
       while (prediction.status !== 'succeeded' && prediction.status !== 'failed') {
         await new Promise(resolve => setTimeout(resolve, 1000));
-        // Envia o userId para o servidor saber de quem é a imagem e a poder guardar
         const res = await fetch(`https://backend-gerador-ia.onrender.com/api/status/${prediction.id}?userId=${userId}`);
         prediction = await res.json();
       }
@@ -339,102 +340,4 @@ export default function App() {
                   <button onClick={resetInputs} disabled={loading} className="flex-1 py-3 px-4 border border-white/40 text-white hover:border-white/70 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all">
                     <RotateCcw className="w-4 h-4 inline mr-1" /> Limpar
                   </button>
-                  <button onClick={generateImage} disabled={loading || !prompt} className="flex-[2] py-3 bg-white text-black font-bold rounded-lg text-sm uppercase tracking-wide cursor-pointer disabled:opacity-50 transition-all" style={{boxShadow: '0 0 20px rgba(255,255,255,0.4)'}}>
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin inline mr-1" /> : <Play className="w-4 h-4 inline mr-1" />} {loading ? 'A processar...' : 'Gerar'}
-                  </button>
-                </div>
-
-                {error && (
-                  <div className="p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                    <p>{error}</p>
-                  </div>
-                )}
-              </div>
-
-              {/* ÁREA DA IMAGEM DIREITA */}
-              <div className="flex-1 flex flex-col items-center justify-center p-8 relative min-h-[500px]">
-                {loading ? (
-                  <div className="text-center space-y-6">
-                    <div className="w-20 h-20 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" style={{boxShadow: '0 0 20px rgba(255,255,255,0.4)'}}></div>
-                    <p className="text-white/80 text-base font-light tracking-wide animate-pulse">{progressText}</p>
-                  </div>
-                ) : generatedImage ? (
-                  <div className="w-full max-w-3xl space-y-6">
-                    <div className="relative group flex justify-center">
-                      <img src={generatedImage} alt="Gerado pela IA" className="w-full max-h-[65vh] object-contain rounded-lg" style={{boxShadow: '0 0 30px rgba(255,255,255,0.3)'}} />
-                    </div>
-                    <div className="flex items-center justify-between p-4 rounded-lg border border-white/20 bg-white/5 backdrop-blur-md">
-                      <div className="text-sm text-white/80 font-light">
-                        <p>Gerado em <strong className="text-white font-semibold">{generationTime}s</strong></p>
-                      </div>
-                      <button onClick={() => downloadImage()} className="px-6 py-2 border border-white/40 hover:bg-white/10 hover:border-white/70 rounded-lg text-white text-sm flex items-center gap-2 transition-all font-semibold uppercase tracking-wide cursor-pointer">
-                        <Download className="w-4 h-4" /> Transferir
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center space-y-6 flex flex-col items-center opacity-70">
-                    <div className="w-32 h-32 border-2 border-dashed border-white/40 rounded-lg flex items-center justify-center text-6xl">🎨</div>
-                    <div>
-                      <p className="text-xl font-light text-white/80">A tua imagem aparecerá aqui</p>
-                      <p className="text-sm text-gray-500 mt-2">Descreva o cenário ao lado para começar</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* TELA 2: HISTÓRICO DE IMAGENS */}
-          {activeTab === 'historico' && (
-            <div className="p-10 min-h-screen">
-              <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">O Meu Histórico</h2>
-              <p className="text-white/60 mb-10 font-light tracking-wide">Todas as tuas artes salvas na nuvem.</p>
-              
-              {loadingHistory ? (
-                <div className="flex items-center justify-center h-64"><Loader2 className="w-10 h-10 animate-spin text-white" /></div>
-              ) : history.length === 0 ? (
-                <p className="text-white/40 italic">Ainda não geraste nenhuma imagem nesta conta.</p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {history.map((item) => (
-                    <div key={item.id} className="group relative rounded-xl overflow-hidden border border-white/10 bg-white/5 transition-all duration-300 hover:border-white/30 flex flex-col justify-between" style={{ backdropFilter: 'blur(10px)' }}>
-                      <div className="aspect-square w-full bg-black/40 relative overflow-hidden flex items-center justify-center">
-                        <img src={item.image_url} alt={item.prompt} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
-                        
-                        {/* Camada Hover */}
-                        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 backdrop-blur-xs">
-                          <p className="text-xs text-white/90 line-clamp-4 font-light tracking-wide mb-3">"{item.prompt}"</p>
-                          <button onClick={() => downloadImage(item.image_url)} className="w-full py-2 bg-white text-black font-bold text-xs uppercase tracking-widest rounded-lg transition-all hover:bg-gray-200 flex items-center justify-center gap-2 cursor-pointer">
-                            <Download className="w-3 h-3" /> Transferir
-                          </button>
-                        </div>
-                      </div>
-                      <div className="p-4 border-t border-white/5 bg-black/20">
-                        <p className="text-xs text-white/50 truncate font-light">"{item.prompt}"</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-        </main>
-      </SignedIn>
-
-      {/* ESTILOS (Scrollbar customizada e Animações) */}
-      <style jsx>{`
-        @keyframes infinite-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .animate-infinite-scroll { animation: infinite-scroll 20s linear infinite; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fadeIn { animation: fadeIn 1s ease-out forwards; }
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
-      `}</style>
-    </div>
-  );
-}
+                  <button onClick={generateImage} disabled={loading || !prompt} className="flex-[2] py-3 bg-white text-black font-bold rounded-lg text-sm uppercase tracking-wide cursor-pointer disabled:opacity-50 transition-all" style={{boxShadow: '0 0 20px rgba(255,255,255,0.
