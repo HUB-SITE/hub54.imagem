@@ -241,68 +241,71 @@ export default function App() {
           
           {/* Glass card container */}
           <div className="hub-landing-card animate-fadeIn">
+            {/* The animated moving border */}
+            <div className="hub-card-border-container" />
             
-            {/* Top bar decorativo */}
-            <div className="hub-card-topbar">
-              <span className="hub-dot" />
-              <span className="hub-dot" />
-              <span className="hub-dot" />
-              <span className="hub-topbar-label">HUB IA 54 — SISTEMA EM DESENVOLVIMENTO </span>
-            </div>
-
-            {/* Logo / Título principal */}
-            <div className="hub-card-body">
-              <div className="hub-logo-block">
-                <div className="hub-logo-badge">AI</div>
-                <div>
-                  <h1 className="hub-title">HUB IA 54</h1>
-                  <p className="hub-subtitle">Plataforma Focada em Inteligência Artificial</p>
-                </div>
+            <div className="relative z-10">
+              {/* Top bar decorativo */}
+              <div className="hub-card-topbar">
+                <span className="hub-dot" />
+                <span className="hub-dot" />
+                <span className="hub-dot" />
+                <span className="hub-topbar-label">HUB IA 54 — SISTEMA EM DESENVOLVIMENTO </span>
               </div>
 
-              {/* Divisor com neon */}
-              <div className="hub-divider" />
+              {/* Logo / Título principal */}
+              <div className="hub-card-body">
+                <div className="hub-logo-block">
+                  <div className="hub-logo-badge">AI</div>
+                  <div>
+                    <h1 className="hub-title">HUB IA 54</h1>
+                    <p className="hub-subtitle">Plataforma Focada em Inteligência Artificial</p>
+                  </div>
+                </div>
 
-              {/* Métricas / Features */}
-              <div className="hub-features-row">
-                <div className="hub-feature-item">
-                  <span className="hub-feature-icon">◈</span>
-                  <span className="hub-feature-label">Geração de Imagens</span>
+                {/* Divisor com neon */}
+                <div className="hub-divider" />
+
+                {/* Métricas / Features */}
+                <div className="hub-features-row">
+                  <div className="hub-feature-item">
+                    <span className="hub-feature-icon">◈</span>
+                    <span className="hub-feature-label">Geração de Imagens</span>
+                  </div>
+                  <div className="hub-feature-sep" />
+                  <div className="hub-feature-item">
+                    <span className="hub-feature-icon">◈</span>
+                    <span className="hub-feature-label">Modelos Avançados</span>
+                  </div>
+                  <div className="hub-feature-sep" />
+                  <div className="hub-feature-item">
+                    <span className="hub-feature-icon">◈</span>
+                    <span className="hub-feature-label">Histórico em Nuvem</span>
+                  </div>
                 </div>
-                <div className="hub-feature-sep" />
-                <div className="hub-feature-item">
-                  <span className="hub-feature-icon">◈</span>
-                  <span className="hub-feature-label">Modelos Avançados</span>
-                </div>
-                <div className="hub-feature-sep" />
-                <div className="hub-feature-item">
-                  <span className="hub-feature-icon">◈</span>
-                  <span className="hub-feature-label">Histórico em Nuvem</span>
-                </div>
+
+                {/* Divisor */}
+                <div className="hub-divider" />
+
+                {/* Descrição */}
+                <p className="hub-desc">
+                 Ferramentas de criação visual com inteligência artificial de última geração. 
+                 Resultados profissionais, interface limpa, sem distrações.
+                </p>
+
+                {/* Botão CTA */}
+                <SignInButton mode="modal">
+                  <button className="hub-cta-btn">
+                    <span className="hub-cta-label">Acessar Plataforma</span>
+                    <span className="hub-cta-arrow">→</span>
+                  </button>
+                </SignInButton>
+
+                {/* Rodapé do card */}
+                <p className="hub-card-footer">Acesso seguro · Dados encriptados by HUB IA </p>
               </div>
-
-              {/* Divisor */}
-              <div className="hub-divider" />
-
-              {/* Descrição */}
-              <p className="hub-desc">
-               Ferramentas de criação visual com inteligência artificial de última geração. 
-               Resultados profissionais, interface limpa, sem distrações.
-              </p>
-
-              {/* Botão CTA */}
-              <SignInButton mode="modal">
-                <button className="hub-cta-btn">
-                  <span className="hub-cta-label">         Acessar Plataforma</span>
-                  <span className="hub-cta-arrow">→</span>
-                </button>
-              </SignInButton>
-
-              {/* Rodapé do card */}
-              <p className="hub-card-footer">Acesso seguro · Dados encriptados by HUB IA </p>
             </div>
           </div>
-
         </div>
       </SignedOut>
 
@@ -330,14 +333,14 @@ export default function App() {
               <div className="sidebar-logo-badge">AI</div>
               <div>
                 <h1 className="text-sm font-black tracking-widest text-white uppercase">HUB IA 54</h1>
-                <p className="text-xs text-white/30 tracking-widest mt-0.5 uppercase">Plataforma</p>
+                <p className="text-xs text-white/50 tracking-widest mt-0.5 uppercase">Plataforma</p>
               </div>
             </div>
           </div>
 
           {/* Navegação */}
           <nav className="flex-1 p-5 space-y-2 mt-2">
-            <p className="text-xs text-white/20 uppercase tracking-widest font-semibold mb-4 px-2">Navegação</p>
+            <p className="text-xs text-white/50 uppercase tracking-widest font-semibold mb-4 px-2">Navegação</p>
             
             <button
               onClick={() => setActiveTab('gerar')}
@@ -359,10 +362,10 @@ export default function App() {
           {/* Saldo / Status */}
           <div className="p-5 border-t border-white/8">
             <div className="sidebar-status-card">
-              <CreditCard className="w-4 h-4 text-white/40 flex-shrink-0" />
+              <CreditCard className="w-4 h-4 text-white/60 flex-shrink-0" />
               <div className="flex flex-col min-w-0">
-                <span className="text-xs text-white/30 uppercase tracking-widest">Estado</span>
-                <span className="text-xs font-bold text-white/80 mt-0.5 flex items-center gap-1.5">
+                <span className="text-xs text-white/50 uppercase tracking-widest">Estado</span>
+                <span className="text-xs font-bold text-white/90 mt-0.5 flex items-center gap-1.5">
                   <span className="status-dot" /> Ativo
                 </span>
               </div>
@@ -388,13 +391,13 @@ export default function App() {
               >
                 {/* Cabeçalho do painel */}
                 <div className="pb-2">
-                  <p className="text-xs text-white/25 uppercase tracking-widest font-semibold mb-1">Estúdio</p>
+                  <p className="text-xs text-white/50 uppercase tracking-widest font-semibold mb-1">Estúdio</p>
                   <h2 className="text-2xl font-black text-white tracking-tight">Criar Imagem</h2>
                 </div>
 
                 {/* Prompt */}
                 <div className="space-y-2">
-                  <label className="panel-label">Prompt <span className="text-white/30">(obrigatório)</span></label>
+                  <label className="panel-label">Prompt <span className="text-white/50">(obrigatório)</span></label>
                   <textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
@@ -406,7 +409,7 @@ export default function App() {
 
                 {/* Upload de imagem base */}
                 <div className="space-y-2">
-                  <label className="panel-label">Imagem Base <span className="text-white/30">(opcional)</span></label>
+                  <label className="panel-label">Imagem Base <span className="text-white/50">(opcional)</span></label>
                   <div
                     onClick={() => fileInputRef.current?.click()}
                     className={`panel-upload-zone ${inputImage ? 'panel-upload-success' : ''}`}
@@ -417,8 +420,8 @@ export default function App() {
                       </div>
                     ) : (
                       <div className="flex flex-col items-center gap-1">
-                        <ImageIcon className="w-5 h-5 text-white/20" />
-                        <span className="text-xs text-white/30">Clique ou arraste uma imagem</span>
+                        <ImageIcon className="w-5 h-5 text-white/40" />
+                        <span className="text-xs text-white/50">Clique ou arraste uma imagem</span>
                       </div>
                     )}
                   </div>
@@ -494,8 +497,8 @@ export default function App() {
                       className="flex items-center justify-between p-4 rounded-lg border border-white/10"
                       style={{ backgroundColor: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(16px)' }}
                     >
-                      <div className="text-sm text-white/40 font-light">
-                        Gerado em <strong className="text-white/80 font-semibold">{generationTime}s</strong>
+                      <div className="text-sm text-white/50 font-light">
+                        Gerado em <strong className="text-white/90 font-semibold">{generationTime}s</strong>
                       </div>
                       <button
                         onClick={() => downloadImage()}
@@ -507,13 +510,19 @@ export default function App() {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center space-y-5 flex flex-col items-center opacity-50">
-                    <div className="empty-state-icon">
-                      <ImageIcon className="w-10 h-10 text-white/20" />
+                  <div className="text-center space-y-5 flex flex-col items-center opacity-70">
+                    <div className="empty-state-icon relative">
+                      <span className="text-3xl font-black text-transparent bg-clip-text animate-pulse"
+                            style={{
+                              WebkitTextStroke: '1.5px rgba(255, 255, 255, 0.9)',
+                              textShadow: '0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.6), 0 0 30px #fff'
+                            }}>
+                        H
+                      </span>
                     </div>
                     <div>
-                      <p className="text-lg font-light text-white/60 tracking-wide">A sua imagem aparecerá aqui</p>
-                      <p className="text-sm text-white/25 mt-1 font-light">Configure o prompt e clique em Gerar</p>
+                      <p className="text-lg font-light text-white/80 tracking-wide">A sua imagem aparecerá aqui</p>
+                      <p className="text-sm text-white/50 mt-1 font-light">Configure o prompt e clique em Gerar</p>
                     </div>
                   </div>
                 )}
@@ -525,21 +534,21 @@ export default function App() {
           {activeTab === 'historico' && (
             <div className="p-8 md:p-10 min-h-screen">
               <div className="mb-10">
-                <p className="text-xs text-white/25 uppercase tracking-widest font-semibold mb-1">Arquivo</p>
+                <p className="text-xs text-white/50 uppercase tracking-widest font-semibold mb-1">Arquivo</p>
                 <h2 className="text-2xl font-black text-white tracking-tight">O Meu Histórico</h2>
-                <p className="text-white/30 mt-1 text-sm font-light">Todas as criações guardadas na nuvem.</p>
+                <p className="text-white/60 mt-1 text-sm font-light">Todas as criações guardadas na nuvem.</p>
               </div>
               
               {loadingHistory ? (
                 <div className="flex items-center justify-center h-64">
-                  <Loader2 className="w-8 h-8 animate-spin text-white/30" />
+                  <Loader2 className="w-8 h-8 animate-spin text-white/50" />
                 </div>
               ) : history.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 gap-4 opacity-50">
+                <div className="flex flex-col items-center justify-center h-64 gap-4 opacity-70">
                   <div className="empty-state-icon">
-                    <ImageIcon className="w-8 h-8 text-white/20" />
+                    <ImageIcon className="w-8 h-8 text-white/40" />
                   </div>
-                  <p className="text-white/30 text-sm font-light tracking-wide">Nenhuma imagem gerada ainda.</p>
+                  <p className="text-white/60 text-sm font-light tracking-wide">Nenhuma imagem gerada ainda.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -559,7 +568,7 @@ export default function App() {
                         {/* Camada Hover */}
                         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4"
                           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)', backdropFilter: 'blur(2px)' }}>
-                          <p className="text-xs text-white/70 line-clamp-3 font-light tracking-wide mb-3 leading-relaxed">"{item.prompt}"</p>
+                          <p className="text-xs text-white/90 line-clamp-3 font-light tracking-wide mb-3 leading-relaxed">"{item.prompt}"</p>
                           <button
                             onClick={() => downloadImage(item.image_url)}
                             className="history-download-btn"
@@ -570,7 +579,7 @@ export default function App() {
                         </div>
                       </div>
                       <div className="px-4 py-3 border-t border-white/6">
-                        <p className="text-xs text-white/25 truncate font-light leading-relaxed">"{item.prompt}"</p>
+                        <p className="text-xs text-white/50 truncate font-light leading-relaxed">"{item.prompt}"</p>
                       </div>
                     </div>
                   ))}
@@ -608,13 +617,35 @@ export default function App() {
           background: rgba(12, 12, 12, 0.72);
           backdrop-filter: blur(32px) saturate(1.4);
           -webkit-backdrop-filter: blur(32px) saturate(1.4);
-          border: 1px solid rgba(255,255,255,0.10);
+          border: 1px solid rgba(255,255,255,0.05); /* diminished slightly since animated border covers it mostly */
           border-radius: 16px;
           box-shadow:
             0 0 0 1px rgba(255,255,255,0.04) inset,
             0 32px 80px rgba(0,0,0,0.8),
             0 0 60px rgba(255,255,255,0.03);
-          overflow: hidden;
+          position: relative;
+        }
+
+        /* LIGHT BORDER TRAVELLING EFFECT */
+        .hub-card-border-container {
+           position: absolute;
+           inset: 0;
+           border-radius: 16px;
+           overflow: hidden;
+           pointer-events: none;
+           padding: 1.5px;
+           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+           -webkit-mask-composite: xor;
+           mask-composite: exclude;
+           z-index: 20;
+        }
+        .hub-card-border-container::before {
+           content: "";
+           position: absolute;
+           top: -50%; left: -50%;
+           width: 200%; height: 200%;
+           background: conic-gradient(transparent 250deg, rgba(255,255,255,0.9) 360deg);
+           animation: spin 3.5s linear infinite;
         }
 
         .hub-card-topbar {
@@ -624,6 +655,8 @@ export default function App() {
           padding: 12px 20px;
           border-bottom: 1px solid rgba(255,255,255,0.06);
           background: rgba(255,255,255,0.02);
+          border-top-left-radius: 16px;
+          border-top-right-radius: 16px;
         }
         .hub-dot {
           width: 7px; height: 7px;
@@ -635,7 +668,7 @@ export default function App() {
           font-size: 10px;
           letter-spacing: 0.15em;
           text-transform: uppercase;
-          color: rgba(255,255,255,0.2);
+          color: rgba(255,255,255,0.50);
           font-weight: 600;
         }
 
@@ -672,7 +705,7 @@ export default function App() {
         }
         .hub-subtitle {
           font-size: 12px;
-          color: rgba(255,255,255,0.28);
+          color: rgba(255,255,255,0.80);
           margin-top: 5px;
           letter-spacing: 0.04em;
           font-weight: 400;
@@ -698,11 +731,11 @@ export default function App() {
         }
         .hub-feature-icon {
           font-size: 9px;
-          color: rgba(255,255,255,0.25);
+          color: rgba(255,255,255,0.40);
         }
         .hub-feature-label {
           font-size: 10.5px;
-          color: rgba(255,255,255,0.40);
+          color: rgba(255,255,255,0.85);
           letter-spacing: 0.02em;
           font-weight: 500;
         }
@@ -715,7 +748,7 @@ export default function App() {
 
         .hub-desc {
           font-size: 13.5px;
-          color: rgba(255,255,255,0.38);
+          color: rgba(255,255,255,0.80);
           line-height: 1.65;
           font-weight: 300;
           margin-top: 4px;
@@ -727,7 +760,8 @@ export default function App() {
           width: 100%;
           display: flex;
           align-items: center;
-          justify-content: space-between;
+          justify-content: center;
+          gap: 12px;
           padding: 15px 22px;
           background: rgba(255,255,255,0.96);
           color: #000;
@@ -751,7 +785,7 @@ export default function App() {
 
         .hub-card-footer {
           font-size: 10px;
-          color: rgba(255,255,255,0.15);
+          color: rgba(255,255,255,0.70);
           text-align: center;
           margin-top: 20px;
           letter-spacing: 0.08em;
@@ -792,11 +826,11 @@ export default function App() {
         }
         .sidebar-nav-idle {
           background: transparent;
-          color: rgba(255,255,255,0.30);
+          color: rgba(255,255,255,0.55);
         }
         .sidebar-nav-idle:hover {
-          background: rgba(255,255,255,0.04);
-          color: rgba(255,255,255,0.65);
+          background: rgba(255,255,255,0.08);
+          color: rgba(255,255,255,0.85);
         }
         .sidebar-status-card {
           display: flex;
@@ -811,7 +845,7 @@ export default function App() {
           display: inline-block;
           width: 5px; height: 5px;
           border-radius: 50%;
-          background: rgba(255,255,255,0.5);
+          background: rgba(255,255,255,0.8);
         }
 
         /* ========== PAINEL DE CONTROLO ========== */
@@ -821,7 +855,7 @@ export default function App() {
           font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.12em;
-          color: rgba(255,255,255,0.35);
+          color: rgba(255,255,255,0.65);
         }
         .panel-textarea {
           width: 100%;
@@ -838,12 +872,12 @@ export default function App() {
           transition: border-color 0.2s;
           font-family: inherit;
         }
-        .panel-textarea::placeholder { color: rgba(255,255,255,0.18); }
-        .panel-textarea:focus { border-color: rgba(255,255,255,0.28); background: rgba(255,255,255,0.06); }
+        .panel-textarea::placeholder { color: rgba(255,255,255,0.30); }
+        .panel-textarea:focus { border-color: rgba(255,255,255,0.40); background: rgba(255,255,255,0.06); }
 
         .panel-upload-zone {
           width: 100%;
-          border: 1px dashed rgba(255,255,255,0.14);
+          border: 1px dashed rgba(255,255,255,0.20);
           border-radius: 8px;
           padding: 22px;
           text-align: center;
@@ -852,11 +886,11 @@ export default function App() {
           transition: all 0.2s ease;
         }
         .panel-upload-zone:hover {
-          border-color: rgba(255,255,255,0.30);
-          background: rgba(255,255,255,0.04);
+          border-color: rgba(255,255,255,0.40);
+          background: rgba(255,255,255,0.06);
         }
         .panel-upload-success {
-          border-color: rgba(255,255,255,0.30);
+          border-color: rgba(255,255,255,0.40);
           border-style: solid;
           background: rgba(255,255,255,0.05);
         }
@@ -874,7 +908,7 @@ export default function App() {
           transition: border-color 0.2s;
           cursor: pointer;
         }
-        .panel-select:focus { border-color: rgba(255,255,255,0.28); }
+        .panel-select:focus { border-color: rgba(255,255,255,0.40); }
         .panel-select option { background: #111; }
 
         .panel-btn-secondary {
@@ -883,7 +917,7 @@ export default function App() {
           padding: 11px 14px;
           border: 1px solid rgba(255,255,255,0.12);
           background: transparent;
-          color: rgba(255,255,255,0.50);
+          color: rgba(255,255,255,0.70);
           border-radius: 8px;
           font-size: 11px;
           font-weight: 700;
@@ -893,8 +927,8 @@ export default function App() {
           transition: all 0.2s;
         }
         .panel-btn-secondary:hover:not(:disabled) {
-          border-color: rgba(255,255,255,0.30);
-          color: rgba(255,255,255,0.80);
+          border-color: rgba(255,255,255,0.40);
+          color: #fff;
         }
         .panel-btn-secondary:disabled { opacity: 0.3; cursor: not-allowed; }
 
@@ -929,7 +963,7 @@ export default function App() {
           background: rgba(255,255,255,0.03);
           border: 1px solid rgba(255,255,255,0.12);
           border-radius: 8px;
-          color: rgba(255,255,255,0.55);
+          color: rgba(255,255,255,0.75);
           font-size: 12px;
           line-height: 1.5;
         }
@@ -946,10 +980,10 @@ export default function App() {
         /* ========== EMPTY STATE ========== */
         .empty-state-icon {
           width: 80px; height: 80px;
-          border: 1px dashed rgba(255,255,255,0.10);
+          border: 1px dashed rgba(255,255,255,0.20);
           border-radius: 12px;
           display: flex; align-items: center; justify-content: center;
-          background: rgba(255,255,255,0.02);
+          background: rgba(255,255,255,0.04);
         }
 
         /* ========== RESULT DOWNLOAD ========== */
@@ -958,7 +992,7 @@ export default function App() {
           padding: 9px 18px;
           border: 1px solid rgba(255,255,255,0.14);
           background: transparent;
-          color: rgba(255,255,255,0.60);
+          color: rgba(255,255,255,0.80);
           border-radius: 7px;
           font-size: 11px;
           font-weight: 700;
@@ -968,9 +1002,9 @@ export default function App() {
           transition: all 0.2s;
         }
         .result-download-btn:hover {
-          border-color: rgba(255,255,255,0.35);
-          color: rgba(255,255,255,0.90);
-          background: rgba(255,255,255,0.05);
+          border-color: rgba(255,255,255,0.50);
+          color: #fff;
+          background: rgba(255,255,255,0.08);
         }
 
         /* ========== HISTORY CARD ========== */
@@ -984,7 +1018,7 @@ export default function App() {
           transition: border-color 0.25s, box-shadow 0.25s;
         }
         .history-card:hover {
-          border-color: rgba(255,255,255,0.16);
+          border-color: rgba(255,255,255,0.25);
           box-shadow: 0 8px 40px rgba(0,0,0,0.5);
         }
 
