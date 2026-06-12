@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Download, Play, RotateCcw, AlertTriangle, Loader2, Image as ImageIcon, PlusSquare, CreditCard } from 'lucide-react';
+import { Download, Play, RotateCcw, AlertTriangle, Loader2, Image as ImageIcon, PlusSquare, CreditCard, Home, MessageCircle, ChevronUp } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from "@clerk/clerk-react";
 
 export default function App() {
   const { userId } = useAuth();
   
   // Estados Principais
-  const [activeTab, setActiveTab] = useState('gerar');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [prompt, setPrompt] = useState('');
   const [aspectRatio, setAspectRatio] = useState('1:1');
   const [inputImage, setInputImage] = useState(null);
@@ -140,7 +140,7 @@ export default function App() {
     });
   };
 
-  // 4. Lógica de Geração da Imagem (Atualizada com input_images e prompt_strength)
+  // 4. Lógica de Geração da Imagem
   const generateImage = async () => {
     if (!prompt) { setError('O campo prompt é obrigatório.'); return; }
     if (!userId) { setError('Tem de iniciar sessão para gerar imagens.'); return; }
@@ -154,12 +154,10 @@ export default function App() {
     try {
       const inputPayload = { prompt, aspect_ratio: aspectRatio };
 
-      // Converte imagem para Base64 caso o utilizador tenha feito upload
       if (inputImage) {
         setProgressText('A processar imagem base...');
         const base64Image = await fileToBase64(inputImage);
         
-        // CORREÇÃO CRÍTICA PARA O FLUX-2-PRO:
         inputPayload.input_images = [base64Image];
         inputPayload.prompt_strength = 0.75; 
       }
@@ -176,7 +174,6 @@ export default function App() {
       let prediction = await response.json();
       setProgressText('A gerar imagem...');
 
-      // Loop para verificar o estado da geração na Replicate
       while (prediction.status !== 'succeeded' && prediction.status !== 'failed') {
         await new Promise(resolve => setTimeout(resolve, 1000));
         const res = await fetch(`https://backend-gerador-ia.onrender.com/api/status/${prediction.id}?userId=${userId}`);
@@ -230,30 +227,21 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans overflow-hidden flex relative">
-      
-      {/* BACKGROUND (Rede Neural) */}
+    <div className="min-h-screen bg-[#07090c] text-white font-sans overflow-hidden flex relative">
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" />
 
       {/* --- ECRÃ DE BOAS-VINDAS (Não logado) --- */}
       <SignedOut>
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen w-full px-4 gap-0">
-          
-          {/* Glass card container */}
           <div className="hub-landing-card animate-fadeIn">
-            {/* The animated moving border */}
             <div className="hub-card-border-container" />
-            
             <div className="relative z-10">
-              {/* Top bar decorativo */}
               <div className="hub-card-topbar">
                 <span className="hub-dot" />
                 <span className="hub-dot" />
                 <span className="hub-dot" />
                 <span className="hub-topbar-label">HUB IA 54 — SISTEMA EM DESENVOLVIMENTO </span>
               </div>
-
-              {/* Logo / Título principal */}
               <div className="hub-card-body">
                 <div className="hub-logo-block">
                   <div className="hub-logo-badge">AI</div>
@@ -262,11 +250,7 @@ export default function App() {
                     <p className="hub-subtitle">Plataforma Focada em Inteligência Artificial</p>
                   </div>
                 </div>
-
-                {/* Divisor com neon */}
                 <div className="hub-divider" />
-
-                {/* Métricas / Features */}
                 <div className="hub-features-row">
                   <div className="hub-feature-item">
                     <span className="hub-feature-icon">◈</span>
@@ -283,25 +267,17 @@ export default function App() {
                     <span className="hub-feature-label">Histórico em Nuvem</span>
                   </div>
                 </div>
-
-                {/* Divisor */}
                 <div className="hub-divider" />
-
-                {/* Descrição */}
                 <p className="hub-desc">
                  Ferramentas de criação visual com inteligência artificial de última geração. 
                  Resultados profissionais, interface limpa, sem distrações.
                 </p>
-
-                {/* Botão CTA */}
                 <SignInButton mode="modal">
                   <button className="hub-cta-btn">
                     <span className="hub-cta-label">Acessar Plataforma</span>
                     <span className="hub-cta-arrow">→</span>
                   </button>
                 </SignInButton>
-
-                {/* Rodapé do card */}
                 <p className="hub-card-footer">Acesso seguro · Dados encriptados by HUB IA </p>
               </div>
             </div>
@@ -312,217 +288,342 @@ export default function App() {
       {/* --- ÁREA DE MEMBROS (Logado) --- */}
       <SignedIn>
         
-        {/* Ícone de perfil no canto superior direito */}
-        <header className="fixed top-0 right-0 z-50 p-6">
-          <UserButton />
+        {/* Cabecalho Perfil */}
+        <header className="fixed top-0 right-0 z-50 p-4 md:p-6 flex flex-col items-end">
+          <div className="bg-[#0a0a0ae6] backdrop-blur-md rounded-full px-3 md:px-5 py-2 border border-white/10 flex items-center gap-3 shadow-2xl">
+             <div className="hidden sm:flex flex-col text-right mr-2">
+                <span className="text-[9px] md:text-[10px] text-white/50 uppercase tracking-widest font-bold">Meus créditos</span>
+                <span className="text-xs md:text-sm font-bold text-white leading-tight">R$ 0,00</span>
+             </div>
+             <UserButton />
+          </div>
         </header>
 
-        {/* MENU LATERAL - Efeito Vidro Jateado */}
+        {/* MENU LATERAL - Expansível no Hover */}
         <aside
-          className="relative z-20 w-full md:w-64 h-screen border-r border-white/10 flex-col hidden md:flex"
+          className="relative z-40 h-screen border-r border-[#1a1a2e] hidden md:flex flex-col transition-all duration-300 w-[80px] hover:w-[260px] group"
           style={{
-            backgroundColor: 'rgba(10, 10, 10, 0.55)',
+            backgroundColor: 'rgba(10, 12, 16, 0.95)',
             backdropFilter: 'blur(24px) saturate(1.2)',
-            WebkitBackdropFilter: 'blur(24px) saturate(1.2)',
-            boxShadow: '1px 0 0 rgba(255,255,255,0.06), 10px 0 40px rgba(0,0,0,0.6)',
+            boxShadow: '10px 0 40px rgba(0,0,0,0.8)',
           }}
         >
-          {/* Logo lateral */}
-          <div className="p-8 border-b border-white/8">
-            <div className="flex items-center gap-3">
-              <div className="sidebar-logo-badge">AI</div>
-              <div>
-                <h1 className="text-sm font-black tracking-widest text-white uppercase">HUB IA 54</h1>
-                <p className="text-xs text-white/50 tracking-widest mt-0.5 uppercase">Plataforma</p>
+          {/* Logo Lateral */}
+          <div className="h-[80px] flex items-center border-b border-white/5 overflow-hidden w-full">
+            <div className="w-[80px] flex-shrink-0 flex justify-center group-hover:w-[70px] transition-all">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600/20 to-blue-600/20 border border-white/10 flex flex-col items-center justify-center shadow-inner">
+                <span className="text-[10px] font-black text-white px-1 leading-none py-0.5">HUB</span>
+                <span className="text-[10px] font-black text-white/70 px-1 leading-none pb-0.5">IA</span>
               </div>
+            </div>
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
+              <h1 className="text-sm font-black tracking-widest text-white uppercase shadow-black drop-shadow-md">HUB IA 54</h1>
+              <p className="text-[9px] text-white/50 uppercase tracking-widest shadow-black">Plataforma</p>
             </div>
           </div>
 
           {/* Navegação */}
-          <nav className="flex-1 p-5 space-y-2 mt-2">
-            <p className="text-xs text-white/50 uppercase tracking-widest font-semibold mb-4 px-2">Navegação</p>
-            
+          <nav className="flex-1 px-3 py-6 space-y-3 overflow-hidden w-full">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`w-full flex items-center h-[52px] rounded-xl transition-all duration-300 border border-transparent ${activeTab === 'dashboard' ? 'bg-white/10 border-white/10 text-white shadow-inner' : 'text-white/50 hover:bg-white/5 hover:text-white'}`}
+            >
+              <div className="w-[56px] flex-shrink-0 flex justify-center transition-all group-hover:w-[50px]">
+                <Home className="w-5 h-5 flex-shrink-0" />
+              </div>
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-bold text-xs uppercase tracking-widest whitespace-nowrap">
+                Início
+              </span>
+            </button>
+
             <button
               onClick={() => setActiveTab('gerar')}
-              className={`sidebar-nav-btn ${activeTab === 'gerar' ? 'sidebar-nav-active' : 'sidebar-nav-idle'}`}
+              className={`w-full flex items-center h-[52px] rounded-xl transition-all duration-300 border border-transparent ${activeTab === 'gerar' ? 'bg-white/10 border-white/10 text-white shadow-inner' : 'text-white/50 hover:bg-white/5 hover:text-white'}`}
             >
-              <PlusSquare className="w-4 h-4 flex-shrink-0" />
-              <span>Nova Geração</span>
+              <div className="w-[56px] flex-shrink-0 flex justify-center transition-all group-hover:w-[50px]">
+                <PlusSquare className="w-5 h-5 flex-shrink-0" />
+              </div>
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-bold text-xs uppercase tracking-widest whitespace-nowrap">
+                Gerador
+              </span>
             </button>
 
             <button
               onClick={() => setActiveTab('historico')}
-              className={`sidebar-nav-btn ${activeTab === 'historico' ? 'sidebar-nav-active' : 'sidebar-nav-idle'}`}
+              className={`w-full flex items-center h-[52px] rounded-xl transition-all duration-300 border border-transparent ${activeTab === 'historico' ? 'bg-white/10 border-white/10 text-white shadow-inner' : 'text-white/50 hover:bg-white/5 hover:text-white'}`}
             >
-              <ImageIcon className="w-4 h-4 flex-shrink-0" />
-              <span>Histórico</span>
+              <div className="w-[56px] flex-shrink-0 flex justify-center transition-all group-hover:w-[50px]">
+                <ImageIcon className="w-5 h-5 flex-shrink-0" />
+              </div>
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-bold text-xs uppercase tracking-widest whitespace-nowrap">
+                Histórico
+              </span>
             </button>
           </nav>
-
-          {/* Saldo / Status */}
-          <div className="p-5 border-t border-white/8">
-            <div className="sidebar-status-card">
-              <CreditCard className="w-4 h-4 text-white/60 flex-shrink-0" />
-              <div className="flex flex-col min-w-0">
-                <span className="text-xs text-white/50 uppercase tracking-widest">Estado</span>
-                <span className="text-xs font-bold text-white/90 mt-0.5 flex items-center gap-1.5">
-                  <span className="status-dot" /> Ativo
-                </span>
-              </div>
-            </div>
-          </div>
         </aside>
 
+        {/* NAVEGAÇÃO MOBILE (Bottom bar) */}
+        <nav className="md:hidden fixed bottom-0 left-0 w-full h-16 bg-[#0a0c10]/95 backdrop-blur-xl border-t border-white/10 z-40 flex items-center justify-around px-2 shadow-[0_-10px_40px_rgba(0,0,0,0.8)]">
+          <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center justify-center p-2 pt-3 w-16 transition-all ${activeTab === 'dashboard' ? 'text-purple-400' : 'text-white/40'}`}>
+            <Home className="w-6 h-6 mb-1" />
+            <span className="text-[9px] uppercase font-bold tracking-widest leading-none">Início</span>
+          </button>
+          <button onClick={() => setActiveTab('gerar')} className={`flex flex-col items-center justify-center p-2 pt-3 w-16 transition-all ${activeTab === 'gerar' ? 'text-purple-400' : 'text-white/40'}`}>
+            <PlusSquare className="w-6 h-6 mb-1" />
+            <span className="text-[9px] uppercase font-bold tracking-widest leading-none">Gerar</span>
+          </button>
+          <button onClick={() => setActiveTab('historico')} className={`flex flex-col items-center justify-center p-2 pt-3 w-16 transition-all ${activeTab === 'historico' ? 'text-purple-400' : 'text-white/40'}`}>
+            <ImageIcon className="w-6 h-6 mb-1" />
+            <span className="text-[9px] uppercase font-bold tracking-widest leading-none">Arquivo</span>
+          </button>
+        </nav>
+
+        {/* BOTÃO WHATSAPP FLUTUANTE */}
+        <a href="https://wa.me/" target="_blank" rel="noopener noreferrer" 
+           className="fixed bottom-[90px] md:bottom-8 right-4 md:right-8 z-50 w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#25D366] flex items-center justify-center cursor-pointer shadow-[0_0_20px_rgba(37,211,102,0.4)] hover:scale-110 hover:shadow-[0_0_30px_rgba(37,211,102,0.6)] transition-all duration-300">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="white" viewBox="0 0 16 16">
+            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c-.003 1.396.366 2.76 1.056 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+          </svg>
+        </a>
+
         {/* CONTEÚDO CENTRAL */}
-        <main className="relative z-10 flex-1 h-screen overflow-y-auto custom-scrollbar">
+        <main className="relative z-10 flex-1 h-screen overflow-y-auto custom-scrollbar overflow-x-hidden">
           
-          {/* TELA 1: GERAR IMAGEM */}
+          {/* TELA 1: ÁREA DE MEMBROS (Dashboard Principal) */}
+          {activeTab === 'dashboard' && (
+            <div className="w-full flex flex-col pb-24 md:pb-12 xl:max-w-[1600px] xl:mx-auto">
+              
+              {/* BANNER SUPERIOR DE DESTAQUE */}
+              <div className="relative w-full h-[400px] md:h-[500px] flex flex-col justify-end p-6 md:p-14 border-b border-white/5 overflow-hidden group">
+                
+                {/* Espaço para Imagem de Fundo customizada Futura */}
+                <div className="absolute inset-0 bg-transparent z-0 overflow-hidden pointer-events-none">
+                   {/* Background Overlay Default - Aqui entra a imagem de capa em nova TAG img no futuro */}
+                   <div className="w-full h-full bg-gradient-to-t from-[#05070a] via-[#0a0c12]/80 to-transparent"></div>
+                   <div className="absolute w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
+                </div>
+
+                <div className="relative z-10 max-w-4xl border-l-[3px] border-purple-500 pl-6 md:pl-8">
+                  {/* Rating Estrelas */}
+                  <div className="flex gap-1 mb-5 items-center">
+                     {[1,2,3,4,5].map(star => <span key={star} className="text-purple-500 text-sm md:text-lg leading-none">★</span>)}
+                     <span className="text-white/70 ml-2 text-xs md:text-sm font-bold mt-1">(5,0)</span>
+                     <span className="text-white/40 ml-4 text-[10px] md:text-xs tracking-widest uppercase mt-1 flex items-center gap-1 cursor-pointer hover:text-white transition">🌟 Avaliar plataforma</span>
+                  </div>
+
+                  <h1 className="text-4xl md:text-6xl font-black text-white mb-4 tracking-tighter drop-shadow-2xl shadow-black">Treinamento & Ferramenta Generativa</h1>
+                  
+                  <p className="text-white/70 text-sm md:text-base font-light max-w-2xl mb-10 leading-relaxed drop-shadow-lg shadow-black">
+                    Acesse imediatamente as mais avançadas LLMs de processamento de imagem na nuvem. Aprenda todas as vulnerabilidades e padrões hiper-realistas diretamente do estúdio de criação.
+                  </p>
+
+                  {/* Botão Ação */}
+                  <div 
+                    className="p-4 rounded-xl bg-black/50 backdrop-blur-md max-w-sm cursor-pointer border border-white/10 hover:bg-white/10 hover:border-white/30 transition-all group/cta flex items-center gap-4 shadow-2xl"
+                    onClick={() => setActiveTab('gerar')}
+                  >
+                     <div className="w-12 h-12 rounded-full border border-white/20 bg-white/5 group-hover/cta:bg-white flex items-center justify-center transition-all">
+                       <Play className="w-5 h-5 text-white group-hover/cta:text-black ml-1 transition-colors" />
+                     </div>
+                     <div>
+                       <p className="text-white/50 text-[10px] uppercase tracking-widest font-bold mb-1">Acessar Estúdio Principal:</p>
+                       <p className="text-white font-bold text-sm leading-tight">Painel do Gerador IA</p>
+                       <p className="text-[#1abc9c] font-black text-[10px] uppercase tracking-widest mt-0.5">Disponível</p>
+                     </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* LISTAGEM DE MÓDULOS / FERRAMENTAS */}
+              <div className="px-6 md:px-14 py-12 md:py-16">
+                
+                <div className="flex items-center gap-3 mb-8 cursor-pointer opacity-90 hover:opacity-100 transition-opacity">
+                  <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                    <ChevronUp className="w-4 h-4 text-white" />
+                  </div>
+                  <h2 className="text-white font-bold text-xl md:text-2xl tracking-tight">Ver todas as seções</h2>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+                  
+                  {/* Banner Sub - 1 (Ativo) -> Redireciona Gerador */}
+                  <div onClick={() => setActiveTab('gerar')} className="aspect-[4/5] rounded-[20px] border border-white/10 bg-[#0a0c12]/80 backdrop-blur cursor-pointer relative overflow-hidden group transition-all duration-300 hover:ring-2 hover:ring-purple-500/50 hover:border-purple-500/50 hover:-translate-y-2 shadow-2xl">
+                     <div className="absolute inset-0 bg-gradient-to-t from-[#020305] via-[#020305]/60 to-transparent z-10" />
+                     
+                     <div className="absolute top-0 left-0 p-4 z-20 w-full flex justify-between items-start">
+                       <span className="px-3 py-1.5 bg-[#1abc9c]/10 border border-[#1abc9c]/30 rounded text-[9px] font-black text-[#1abc9c] tracking-widest uppercase shadow-lg backdrop-blur-md">MÓDULO 1</span>
+                     </div>
+                     
+                     <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-6 z-20">
+                        <h3 className="text-white font-bold text-lg md:text-xl leading-tight group-hover:text-purple-300 transition-colors">Estúdio Criador IA</h3>
+                        <p className="text-white/40 text-xs mt-2 mb-4 font-light leading-snug line-clamp-2">Acesso total ao pipeline visual base.</p>
+                        
+                        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                           <div className="h-full w-full bg-gradient-to-r from-purple-500 to-[#1abc9c]"></div>
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Banners Sub placeholders 2 a 5 */}
+                  {[2,3,4,5].map((num) => (
+                    <div key={num} className="aspect-[4/5] rounded-[20px] border border-white/5 bg-[#0a0c12]/40 backdrop-blur cursor-pointer relative overflow-hidden group opacity-60 hover:opacity-100 transition-all duration-300 hover:ring-1 hover:ring-white/20 hover:-translate-y-1 shadow-xl">
+                       <div className="absolute inset-0 bg-gradient-to-t from-[#020305] via-transparent to-transparent z-10" />
+                       
+                       <div className="absolute top-0 left-0 p-4 z-20 w-full flex justify-between items-start">
+                         <span className="px-3 py-1.5 bg-white/5 border border-white/10 rounded text-[9px] font-black text-white/50 tracking-widest uppercase backdrop-blur-md">MÓDULO {num}</span>
+                       </div>
+                       
+                       <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-6 z-20">
+                          <h3 className="text-white/70 font-bold text-lg md:text-xl leading-tight group-hover:text-white transition-colors">Liberar em Breve</h3>
+                          <p className="text-white/30 text-xs mt-2 mb-4 font-light line-clamp-2">Nova seção será disponibilizada pela plataforma.</p>
+                          
+                          <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                             <div className="h-full w-[0%] bg-white/20"></div>
+                          </div>
+                       </div>
+                    </div>
+                  ))}
+                </div>
+
+              </div>
+            </div>
+          )}
+
+
+          {/* TELA 2: GERAR IMAGEM (ESTÚDIO) */}
           {activeTab === 'gerar' && (
-            <div className="flex flex-col xl:flex-row min-h-screen">
+            <div className="flex flex-col xl:flex-row min-h-screen pb-20 md:pb-0">
               
               {/* PAINEL DE CONTROLO ESQUERDO */}
               <div
-                className="w-full xl:w-[400px] p-8 space-y-6 border-r border-white/8 flex-shrink-0"
+                className="w-full xl:w-[420px] p-6 md:p-10 space-y-7 border-r border-[#1a1a2e] flex-shrink-0 relative z-20"
                 style={{
-                  backgroundColor: 'rgba(8, 8, 8, 0.5)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
+                  backgroundColor: 'rgba(8, 10, 14, 0.85)',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
                 }}
               >
-                {/* Cabeçalho do painel */}
                 <div className="pb-2">
-                  <p className="text-xs text-white/50 uppercase tracking-widest font-semibold mb-1">Estúdio</p>
-                  <h2 className="text-2xl font-black text-white tracking-tight">Criar Imagem</h2>
+                  <p className="text-[10px] text-white/50 uppercase tracking-widest font-black mb-2 text-[#1abc9c]">Módulo 1 / Ferramenta</p>
+                  <h2 className="text-3xl font-black text-white tracking-tight">Estúdio Generativo</h2>
                 </div>
 
-                {/* Prompt */}
-                <div className="space-y-2">
-                  <label className="panel-label">Prompt <span className="text-white/50">(obrigatório)</span></label>
+                <div className="space-y-3">
+                  <label className="panel-label">Prompt Principal <span className="text-white/40 font-normal lowercase">(obrigatório)</span></label>
                   <textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    className="panel-textarea"
-                    placeholder="Descreva o cenário em detalhe..."
-                    rows={4}
+                    className="panel-textarea shadow-inner"
+                    placeholder="Descreva detalhadamente o cenário, estilo, iluminação, cores..."
+                    rows={5}
                   />
                 </div>
 
-                {/* Upload de imagem base */}
-                <div className="space-y-2">
-                  <label className="panel-label">Imagem Base <span className="text-white/50">(opcional)</span></label>
+                <div className="space-y-3">
+                  <label className="panel-label">Base de Transformação <span className="text-white/40 font-normal lowercase">(opcional)</span></label>
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className={`panel-upload-zone ${inputImage ? 'panel-upload-success' : ''}`}
+                    className={`panel-upload-zone shadow-inner ${inputImage ? 'panel-upload-success' : ''}`}
                   >
                     {inputImage ? (
-                      <div className="flex items-center gap-2 text-white/80">
-                        <span className="text-xs font-semibold uppercase tracking-wider">✓ Imagem carregada</span>
+                      <div className="flex flex-col items-center gap-2 text-[#1abc9c]">
+                        <ImageIcon className="w-6 h-6" />
+                        <span className="text-xs font-bold uppercase tracking-wider">Mídia Carregada com Sucesso</span>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center gap-1">
-                        <ImageIcon className="w-5 h-5 text-white/40" />
-                        <span className="text-xs text-white/50">Clique ou arraste uma imagem</span>
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                           <Download className="w-4 h-4 text-white/50" />
+                        </div>
+                        <span className="text-xs font-light text-white/60">Clique ou arraste arquivo visual</span>
                       </div>
                     )}
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                 </div>
 
-                {/* Proporção */}
-                <div className="space-y-2">
-                  <label className="panel-label">Proporção</label>
+                <div className="space-y-3">
+                  <label className="panel-label">Dimensão de Saída</label>
                   <select
                     value={aspectRatio}
                     onChange={(e) => setAspectRatio(e.target.value)}
-                    className="panel-select"
+                    className="panel-select shadow-inner"
                   >
-                    <option value="1:1">1:1 — Quadrado</option>
-                    <option value="16:9">16:9 — Paisagem</option>
-                    <option value="9:16">9:16 — Stories / Reels</option>
+                    <option value="1:1">1:1 — Quadrado Perfeito</option>
+                    <option value="16:9">16:9 — Formato Paisagem</option>
+                    <option value="9:16">9:16 — Formato Visual Vertical</option>
                   </select>
                 </div>
 
-                {/* Divisor */}
-                <div className="border-t border-white/8 pt-6 space-y-3">
-                  {/* Ações */}
+                <div className="border-t border-white/10 pt-8 space-y-4">
                   <div className="flex gap-3">
                     <button
                       onClick={resetInputs}
                       disabled={loading}
                       className="panel-btn-secondary"
                     >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      <span>Limpar</span>
+                      <RotateCcw className="w-4 h-4" />
                     </button>
                     <button
                       onClick={generateImage}
                       disabled={loading || !prompt}
-                      className="panel-btn-primary"
+                      className="panel-btn-primary flex-1"
                     >
                       {loading
-                        ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /><span>A processar...</span></>
-                        : <><Play className="w-3.5 h-3.5" /><span>Gerar</span></>
+                        ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Extraindo Rede Neural...</span></>
+                        : <><Play className="w-4 h-4" /><span>Gerar Renderização</span></>
                       }
                     </button>
                   </div>
 
-                  {/* Erro */}
                   {error && (
                     <div className="panel-error">
-                      <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                      <p>{error}</p>
+                      <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-500" />
+                      <p className="text-red-200/90">{error}</p>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* ÁREA DA IMAGEM DIREITA */}
-              <div className="flex-1 flex flex-col items-center justify-center p-8 relative min-h-[500px]">
+              <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 relative min-h-[60vh] xl:min-h-screen">
                 {loading ? (
-                  <div className="text-center space-y-6 flex flex-col items-center">
-                    <div className="loading-spinner" />
-                    <p className="text-white/50 text-sm font-light tracking-widest uppercase animate-pulse">{progressText}</p>
+                  <div className="text-center space-y-8 flex flex-col items-center">
+                    <div className="loading-spinner-glow" />
+                    <p className="text-purple-300 text-sm font-bold tracking-[0.2em] uppercase animate-pulse drop-shadow-md">{progressText}</p>
                   </div>
                 ) : generatedImage ? (
-                  <div className="w-full max-w-3xl space-y-5">
-                    <div className="relative group flex justify-center">
+                  <div className="w-full max-w-4xl space-y-6 animate-fadeIn">
+                    <div className="relative group flex justify-center w-full">
                       <img
                         src={generatedImage}
-                        alt="Gerado pela IA"
-                        className="w-full max-h-[65vh] object-contain rounded-lg"
-                        style={{ boxShadow: '0 0 60px rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.08)' }}
+                        alt="Processado Neural"
+                        className="w-full max-h-[75vh] object-contain rounded-2xl"
+                        style={{ boxShadow: '0 0 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)' }}
                       />
                     </div>
                     <div
-                      className="flex items-center justify-between p-4 rounded-lg border border-white/10"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(16px)' }}
+                      className="flex items-center justify-between p-5 rounded-2xl border border-white/5"
+                      style={{ backgroundColor: 'rgba(8,10,14,0.6)', backdropFilter: 'blur(20px)' }}
                     >
-                      <div className="text-sm text-white/50 font-light">
-                        Gerado em <strong className="text-white/90 font-semibold">{generationTime}s</strong>
+                      <div className="text-sm text-white/50 font-light hidden sm:block">
+                        Tempo de latência <strong className="text-white font-bold ml-1">{generationTime}s</strong>
                       </div>
                       <button
                         onClick={() => downloadImage()}
-                        className="result-download-btn"
+                        className="result-download-btn w-full sm:w-auto justify-center"
                       >
-                        <Download className="w-3.5 h-3.5" />
-                        <span>Transferir</span>
+                        <Download className="w-4 h-4" />
+                        <span>Extrair Mídia .PNG</span>
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center space-y-5 flex flex-col items-center opacity-70">
-                    <div className="empty-state-icon relative">
-                      <span className="text-3xl font-black text-transparent bg-clip-text animate-pulse"
-                            style={{
-                              WebkitTextStroke: '1.5px rgba(255, 255, 255, 0.9)',
-                              textShadow: '0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.6), 0 0 30px #fff'
-                            }}>
-                        H
-                      </span>
-                    </div>
-                    <div>
-                      <p className="text-lg font-light text-white/80 tracking-wide">A sua imagem aparecerá aqui</p>
-                      <p className="text-sm text-white/50 mt-1 font-light">Configure o prompt e clique em Gerar</p>
+                  <div className="text-center space-y-6 flex flex-col items-center opacity-60">
+                    <div className="empty-state-icon relative bg-[#0a0c12]/50 border border-white/5 rounded-[2xl] p-8 shadow-2xl">
+                      <ImageIcon className="w-16 h-16 text-white/20 mb-4" />
+                      <p className="text-xl font-light text-white/80 tracking-wide">Terminal Operacional em Espera</p>
+                      <p className="text-sm text-white/40 mt-2 font-light">Especifique os parâmetros visuais no painel.</p>
                     </div>
                   </div>
                 )}
@@ -530,56 +631,55 @@ export default function App() {
             </div>
           )}
 
-          {/* TELA 2: HISTÓRICO DE IMAGENS */}
+          {/* TELA 3: HISTÓRICO DE IMAGENS */}
           {activeTab === 'historico' && (
-            <div className="p-8 md:p-10 min-h-screen">
-              <div className="mb-10">
-                <p className="text-xs text-white/50 uppercase tracking-widest font-semibold mb-1">Arquivo</p>
-                <h2 className="text-2xl font-black text-white tracking-tight">O Meu Histórico</h2>
-                <p className="text-white/60 mt-1 text-sm font-light">Todas as criações guardadas na nuvem.</p>
+            <div className="p-6 md:p-14 min-h-screen pb-24 md:pb-14">
+              <div className="mb-12 border-b border-white/10 pb-8">
+                <p className="text-[10px] text-white/50 uppercase tracking-widest font-black mb-2 text-purple-400">Banco de Dados Pessoal</p>
+                <h2 className="text-3xl font-black text-white tracking-tight">O Meu Arquivo Digital</h2>
+                <p className="text-white/50 mt-3 text-sm font-light max-w-xl leading-relaxed">Registro completo de todos os vetores e matrizes visuais geradas e armazenadas em segurança na nossa nuvem encriptada.</p>
               </div>
               
               {loadingHistory ? (
-                <div className="flex items-center justify-center h-64">
-                  <Loader2 className="w-8 h-8 animate-spin text-white/50" />
+                <div className="flex flex-col items-center justify-center h-64 gap-6">
+                  <div className="loading-spinner-glow w-10 h-10" />
+                  <span className="text-xs uppercase tracking-widest text-white/40 font-bold">Resgatando Arquivos</span>
                 </div>
               ) : history.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 gap-4 opacity-70">
-                  <div className="empty-state-icon">
-                    <ImageIcon className="w-8 h-8 text-white/40" />
-                  </div>
-                  <p className="text-white/60 text-sm font-light tracking-wide">Nenhuma imagem gerada ainda.</p>
+                <div className="flex flex-col items-center justify-center h-64 gap-6 opacity-70 border border-dashed border-white/10 rounded-3xl bg-white/5 max-w-2xl mx-auto">
+                  <ImageIcon className="w-10 h-10 text-white/30" />
+                  <p className="text-white/50 text-sm font-light tracking-wide uppercase">Nenhum registro encontrado no servidor.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {history.map((item) => (
                     <div
                       key={item.id}
-                      className="history-card group"
+                      className="history-card group animate-fadeIn"
                     >
-                      <div className="aspect-square w-full bg-black relative overflow-hidden">
+                      <div className="aspect-square w-full bg-[#0a0c12] relative overflow-hidden">
                         <img
                           src={item.image_url}
                           alt={item.prompt}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                           loading="lazy"
                         />
                         
-                        {/* Camada Hover */}
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4"
-                          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)', backdropFilter: 'blur(2px)' }}>
-                          <p className="text-xs text-white/90 line-clamp-3 font-light tracking-wide mb-3 leading-relaxed">"{item.prompt}"</p>
+                        {/* Camada Hover Escura */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5"
+                          style={{ background: 'linear-gradient(to top, rgba(5,7,10,0.95) 0%, rgba(5,7,10,0.4) 60%, transparent 100%)', backdropFilter: 'blur(3px)' }}>
+                          <p className="text-xs text-white/90 line-clamp-4 font-light tracking-wide mb-4 leading-relaxed">"{item.prompt}"</p>
                           <button
                             onClick={() => downloadImage(item.image_url)}
-                            className="history-download-btn"
+                            className="history-download-btn shadow-xl shadow-black/80"
                           >
-                            <Download className="w-3 h-3" />
-                            <span>Transferir</span>
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Download Full-Res</span>
                           </button>
                         </div>
                       </div>
-                      <div className="px-4 py-3 border-t border-white/6">
-                        <p className="text-xs text-white/50 truncate font-light leading-relaxed">"{item.prompt}"</p>
+                      <div className="px-5 py-4 border-t border-white/5 bg-[#0a0c12]/80 backdrop-blur-sm relative z-10">
+                        <p className="text-xs text-white/40 truncate font-light leading-relaxed">"{item.prompt}"</p>
                       </div>
                     </div>
                   ))}
@@ -587,50 +687,36 @@ export default function App() {
               )}
             </div>
           )}
-
         </main>
       </SignedIn>
 
-      {/* ESTILOS GLOBAIS */}
+      {/* ESTILOS GLOBAIS REFINADOS */}
       <style>{`
-        /* ========== ANIMAÇÕES ========== */
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(16px); }
+          from { opacity: 0; transform: translateY(12px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .animate-fadeIn { animation: fadeIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-fadeIn { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ========== SCROLLBAR ========== */
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 99px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #05070a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
-        /* ========== LANDING CARD ========== */
         .hub-landing-card {
-          width: 100%;
-          max-width: 520px;
-          background: rgba(12, 12, 12, 0.72);
-          backdrop-filter: blur(32px) saturate(1.4);
-          -webkit-backdrop-filter: blur(32px) saturate(1.4);
-          border: 1px solid rgba(255,255,255,0.05); /* diminished slightly since animated border covers it mostly */
-          border-radius: 16px;
-          box-shadow:
-            0 0 0 1px rgba(255,255,255,0.04) inset,
-            0 32px 80px rgba(0,0,0,0.8),
-            0 0 60px rgba(255,255,255,0.03);
+          width: 100%; max-width: 520px;
+          background: rgba(12, 14, 18, 0.85); backdrop-filter: blur(32px);
+          border: 1px solid rgba(255,255,255,0.05); border-radius: 20px;
+          box-shadow: 0 0 0 1px rgba(255,255,255,0.02) inset, 0 32px 80px rgba(0,0,0,0.8);
           position: relative;
         }
 
-        /* LIGHT BORDER TRAVELLING EFFECT */
         .hub-card-border-container {
            position: absolute;
            inset: 0;
-           border-radius: 16px;
+           border-radius: 20px;
            overflow: hidden;
            pointer-events: none;
            padding: 1.5px;
@@ -649,403 +735,123 @@ export default function App() {
         }
 
         .hub-card-topbar {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 12px 20px;
-          border-bottom: 1px solid rgba(255,255,255,0.06);
+          display: flex; align-items: center; gap: 6px;
+          padding: 14px 24px; border-bottom: 1px solid rgba(255,255,255,0.04);
           background: rgba(255,255,255,0.02);
-          border-top-left-radius: 16px;
-          border-top-right-radius: 16px;
+          border-top-left-radius: 20px; border-top-right-radius: 20px;
         }
-        .hub-dot {
-          width: 7px; height: 7px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.12);
-        }
-        .hub-topbar-label {
-          margin-left: 8px;
-          font-size: 10px;
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-          color: rgba(255,255,255,0.50);
-          font-weight: 600;
-        }
+        .hub-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.15); }
+        .hub-topbar-label { margin-left: 8px; font-size: 10px; letter-spacing: 0.15em; color: rgba(255,255,255,0.4); font-weight: 700; text-transform: uppercase; }
 
-        .hub-card-body {
-          padding: 40px 40px 32px;
-          display: flex;
-          flex-direction: column;
-          gap: 0;
-        }
+        .hub-card-body { padding: 40px 40px 36px; display: flex; flex-direction: column; }
 
-        .hub-logo-block {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          margin-bottom: 28px;
-        }
+        .hub-logo-block { display: flex; align-items: center; gap: 18px; margin-bottom: 32px; }
         .hub-logo-badge {
-          width: 48px; height: 48px;
-          border-radius: 10px;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.14);
+          width: 52px; height: 52px; border-radius: 12px;
+          background: linear-gradient(135deg, rgba(168,85,247,0.2), rgba(59,130,246,0.2));
+          border: 1px solid rgba(255,255,255,0.1);
           display: flex; align-items: center; justify-content: center;
-          font-size: 13px; font-weight: 900; letter-spacing: 0.05em;
-          color: rgba(255,255,255,0.85);
-          box-shadow: 0 0 18px rgba(255,255,255,0.06) inset;
-          flex-shrink: 0;
+          font-size: 14px; font-weight: 900; color: #fff; box-shadow: inset 0 0 20px rgba(255,255,255,0.05);
         }
-        .hub-title {
-          font-size: 28px;
-          font-weight: 900;
-          letter-spacing: -0.02em;
-          color: #ffffff;
-          line-height: 1;
-        }
-        .hub-subtitle {
-          font-size: 12px;
-          color: rgba(255,255,255,0.80);
-          margin-top: 5px;
-          letter-spacing: 0.04em;
-          font-weight: 400;
-        }
+        .hub-title { font-size: 30px; font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
+        .hub-subtitle { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 6px; letter-spacing: 0.04em; }
 
-        .hub-divider {
-          height: 1px;
-          background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
-          margin: 20px 0;
-        }
+        .hub-divider { height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.05), transparent); margin: 24px 0; }
 
-        .hub-features-row {
-          display: flex;
-          align-items: center;
-          gap: 0;
-          margin: 0;
-        }
-        .hub-feature-item {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          flex: 1;
-        }
-        .hub-feature-icon {
-          font-size: 9px;
-          color: rgba(255,255,255,0.40);
-        }
-        .hub-feature-label {
-          font-size: 10.5px;
-          color: rgba(255,255,255,0.85);
-          letter-spacing: 0.02em;
-          font-weight: 500;
-        }
-        .hub-feature-sep {
-          width: 1px; height: 20px;
-          background: rgba(255,255,255,0.08);
-          margin: 0 12px;
-          flex-shrink: 0;
-        }
+        .hub-features-row { display: flex; align-items: center; }
+        .hub-feature-item { display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; }
+        .hub-feature-icon { font-size: 10px; color: rgba(168,85,247,0.8); }
+        .hub-feature-label { font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600; text-align: center; }
+        .hub-feature-sep { width: 1px; height: 24px; background: rgba(255,255,255,0.05); margin: 0 16px; flex-shrink: 0; }
 
-        .hub-desc {
-          font-size: 13.5px;
-          color: rgba(255,255,255,0.80);
-          line-height: 1.65;
-          font-weight: 300;
-          margin-top: 4px;
-          margin-bottom: 28px;
-        }
+        .hub-desc { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.7; font-weight: 300; margin-bottom: 32px; text-align: center; }
 
-        /* CTA Button */
         .hub-cta-btn {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          padding: 15px 22px;
-          background: rgba(255,255,255,0.96);
-          color: #000;
-          border: none;
-          border-radius: 10px;
-          font-size: 13px;
-          font-weight: 800;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: all 0.25s ease;
-          box-shadow: 0 0 30px rgba(255,255,255,0.12), 0 4px 20px rgba(0,0,0,0.4);
+          width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px;
+          padding: 16px 24px; background: #fff; color: #000; border: none; border-radius: 12px;
+          font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+          cursor: pointer; transition: all 0.25s ease; box-shadow: 0 0 30px rgba(255,255,255,0.1);
         }
-        .hub-cta-btn:hover {
-          background: #fff;
-          box-shadow: 0 0 50px rgba(255,255,255,0.22), 0 8px 32px rgba(0,0,0,0.5);
-          transform: translateY(-1px);
-        }
-        .hub-cta-label { letter-spacing: 0.1em; }
-        .hub-cta-arrow { font-size: 16px; font-weight: 300; }
+        .hub-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,255,255,0.2); }
+        .hub-card-footer { font-size: 10px; color: rgba(255,255,255,0.3); text-align: center; margin-top: 24px; letter-spacing: 0.1em; text-transform: uppercase; }
 
-        .hub-card-footer {
-          font-size: 10px;
-          color: rgba(255,255,255,0.70);
-          text-align: center;
-          margin-top: 20px;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-        }
-
-        /* ========== SIDEBAR ========== */
-        .sidebar-logo-badge {
-          width: 34px; height: 34px;
-          border-radius: 8px;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.12);
-          display: flex; align-items: center; justify-content: center;
-          font-size: 10px; font-weight: 900;
-          color: rgba(255,255,255,0.7);
-          letter-spacing: 0.05em;
-        }
-        .sidebar-nav-btn {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 10px 14px;
-          border-radius: 8px;
-          font-size: 12px;
-          font-weight: 600;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-          transition: all 0.2s ease;
-          border: none;
-          cursor: pointer;
-        }
-        .sidebar-nav-active {
-          background: rgba(255,255,255,0.10);
-          color: #fff;
-          border: 1px solid rgba(255,255,255,0.15);
-          box-shadow: 0 0 20px rgba(255,255,255,0.04) inset;
-        }
-        .sidebar-nav-idle {
-          background: transparent;
-          color: rgba(255,255,255,0.55);
-        }
-        .sidebar-nav-idle:hover {
-          background: rgba(255,255,255,0.08);
-          color: rgba(255,255,255,0.85);
-        }
-        .sidebar-status-card {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 12px 14px;
-          border-radius: 8px;
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.07);
-        }
-        .status-dot {
-          display: inline-block;
-          width: 5px; height: 5px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.8);
-        }
-
-        /* ========== PAINEL DE CONTROLO ========== */
-        .panel-label {
-          display: block;
-          font-size: 10px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.12em;
-          color: rgba(255,255,255,0.65);
-        }
+        .panel-label { display: block; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.7); }
+        
         .panel-textarea {
-          width: 100%;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.10);
-          border-radius: 8px;
-          padding: 14px;
-          color: #fff;
-          font-size: 13px;
-          font-weight: 300;
-          line-height: 1.6;
-          resize: none;
-          outline: none;
-          transition: border-color 0.2s;
-          font-family: inherit;
+          width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 12px; padding: 16px; color: #fff; font-size: 14px; font-weight: 300;
+          line-height: 1.6; resize: none; outline: none; transition: all 0.2s; font-family: inherit;
         }
-        .panel-textarea::placeholder { color: rgba(255,255,255,0.30); }
-        .panel-textarea:focus { border-color: rgba(255,255,255,0.40); background: rgba(255,255,255,0.06); }
+        .panel-textarea::placeholder { color: rgba(255,255,255,0.25); }
+        .panel-textarea:focus { border-color: purple; background: rgba(0,0,0,0.6); box-shadow: 0 0 0 2px rgba(168,85,247,0.2); }
 
         .panel-upload-zone {
-          width: 100%;
-          border: 1px dashed rgba(255,255,255,0.20);
-          border-radius: 8px;
-          padding: 22px;
-          text-align: center;
-          cursor: pointer;
-          background: rgba(255,255,255,0.02);
-          transition: all 0.2s ease;
+          width: 100%; border: 1px dashed rgba(255,255,255,0.15); border-radius: 12px;
+          padding: 32px 24px; text-align: center; cursor: pointer; background: rgba(0,0,0,0.2); transition: all 0.2s;
         }
-        .panel-upload-zone:hover {
-          border-color: rgba(255,255,255,0.40);
-          background: rgba(255,255,255,0.06);
-        }
-        .panel-upload-success {
-          border-color: rgba(255,255,255,0.40);
-          border-style: solid;
-          background: rgba(255,255,255,0.05);
-        }
+        .panel-upload-zone:hover { border-color: rgba(255,255,255,0.3); background: rgba(0,0,0,0.4); }
+        .panel-upload-success { border-color: #1abc9c; border-style: solid; background: rgba(26,188,156,0.05); }
 
         .panel-select {
-          width: 100%;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.10);
-          border-radius: 8px;
-          padding: 11px 14px;
-          color: #fff;
-          font-size: 13px;
-          font-weight: 400;
-          outline: none;
-          transition: border-color 0.2s;
-          cursor: pointer;
+          width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 12px; padding: 14px 16px; color: #fff; font-size: 13px; font-weight: 500;
+          outline: none; transition: all 0.2s; cursor: pointer;
         }
-        .panel-select:focus { border-color: rgba(255,255,255,0.40); }
-        .panel-select option { background: #111; }
+        .panel-select:focus { border-color: purple; box-shadow: 0 0 0 2px rgba(168,85,247,0.2); }
+        .panel-select option { background: #0a0c12; }
 
         .panel-btn-secondary {
-          flex: 1;
-          display: flex; align-items: center; justify-content: center; gap: 6px;
-          padding: 11px 14px;
-          border: 1px solid rgba(255,255,255,0.12);
-          background: transparent;
-          color: rgba(255,255,255,0.70);
-          border-radius: 8px;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: all 0.2s;
+          display: flex; align-items: center; justify-content: center; width: 56px;
+          padding: 14px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);
+          color: rgba(255,255,255,0.7); border-radius: 12px; cursor: pointer; transition: all 0.2s;
         }
-        .panel-btn-secondary:hover:not(:disabled) {
-          border-color: rgba(255,255,255,0.40);
-          color: #fff;
-        }
+        .panel-btn-secondary:hover:not(:disabled) { border-color: rgba(255,255,255,0.3); color: #fff; background: rgba(255,255,255,0.05); }
         .panel-btn-secondary:disabled { opacity: 0.3; cursor: not-allowed; }
 
         .panel-btn-primary {
-          flex: 2;
-          display: flex; align-items: center; justify-content: center; gap: 6px;
-          padding: 11px 14px;
-          background: rgba(255,255,255,0.95);
-          color: #000;
-          border: none;
-          border-radius: 8px;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 0.10em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: all 0.2s;
-          box-shadow: 0 0 24px rgba(255,255,255,0.14);
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          padding: 14px 20px; background: #fff; color: #000; border: none; border-radius: 12px;
+          font-size: 12px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;
+          cursor: pointer; transition: all 0.2s; box-shadow: 0 0 24px rgba(255,255,255,0.1);
         }
-        .panel-btn-primary:hover:not(:disabled) {
-          background: #fff;
-          box-shadow: 0 0 36px rgba(255,255,255,0.22);
-          transform: translateY(-1px);
-        }
-        .panel-btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+        .panel-btn-primary:hover:not(:disabled) { box-shadow: 0 4px 30px rgba(255,255,255,0.3); transform: translateY(-1px); }
+        .panel-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
         .panel-error {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          padding: 12px 14px;
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 8px;
-          color: rgba(255,255,255,0.75);
-          font-size: 12px;
-          line-height: 1.5;
+          display: flex; align-items: flex-start; gap: 12px; padding: 14px;
+          background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+          border-radius: 12px; font-size: 12px; line-height: 1.5; font-weight: 500;
         }
 
-        /* ========== LOADING SPINNER ========== */
-        .loading-spinner {
-          width: 44px; height: 44px;
-          border: 1px solid rgba(255,255,255,0.10);
-          border-top-color: rgba(255,255,255,0.70);
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
+        .loading-spinner-glow {
+          width: 56px; height: 56px; border: 2px solid rgba(168,85,247,0.1);
+          border-top-color: #a855f7; border-radius: 50%;
+          animation: spin 0.8s ease-in-out infinite;
+          box-shadow: 0 0 30px rgba(168,85,247,0.4);
         }
 
-        /* ========== EMPTY STATE ========== */
-        .empty-state-icon {
-          width: 80px; height: 80px;
-          border: 1px dashed rgba(255,255,255,0.20);
-          border-radius: 12px;
-          display: flex; align-items: center; justify-content: center;
-          background: rgba(255,255,255,0.04);
-        }
-
-        /* ========== RESULT DOWNLOAD ========== */
         .result-download-btn {
-          display: flex; align-items: center; gap: 6px;
-          padding: 9px 18px;
-          border: 1px solid rgba(255,255,255,0.14);
-          background: transparent;
-          color: rgba(255,255,255,0.80);
-          border-radius: 7px;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: all 0.2s;
+          display: flex; align-items: center; gap: 8px; padding: 12px 24px;
+          background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);
+          color: #fff; border-radius: 10px; font-size: 11px; font-weight: 800;
+          letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
         }
-        .result-download-btn:hover {
-          border-color: rgba(255,255,255,0.50);
-          color: #fff;
-          background: rgba(255,255,255,0.08);
-        }
+        .result-download-btn:hover { background: #fff; color: #000; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
 
-        /* ========== HISTORY CARD ========== */
         .history-card {
-          border-radius: 10px;
-          overflow: hidden;
-          border: 1px solid rgba(255,255,255,0.07);
-          background: rgba(255,255,255,0.02);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          transition: border-color 0.25s, box-shadow 0.25s;
+          border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);
+          background: rgba(10,12,18,0.6); backdrop-filter: blur(12px);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .history-card:hover {
-          border-color: rgba(255,255,255,0.25);
-          box-shadow: 0 8px 40px rgba(0,0,0,0.5);
-        }
+        .history-card:hover { border-color: rgba(168,85,247,0.4); box-shadow: 0 16px 40px rgba(0,0,0,0.6); transform: translateY(-4px); }
 
         .history-download-btn {
-          width: 100%;
-          display: flex; align-items: center; justify-content: center; gap: 6px;
-          padding: 9px;
-          background: rgba(255,255,255,0.92);
-          color: #000;
-          border: none;
-          border-radius: 6px;
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: 0.10em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: background 0.2s;
+          width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+          padding: 12px; background: rgba(255,255,255,0.95); color: #000; border: none;
+          border-radius: 8px; font-size: 11px; font-weight: 900; letter-spacing: 0.1em;
+          text-transform: uppercase; cursor: pointer; transition: background 0.2s;
         }
         .history-download-btn:hover { background: #fff; }
-
-        /* ========== RESPONSIVIDADE MOBILE ========== */
-        @media (max-width: 768px) {
-          .hub-card-body { padding: 28px 24px 24px; }
-          .hub-title { font-size: 22px; }
-          .hub-features-row { flex-wrap: wrap; gap: 8px; }
-          .hub-feature-sep { display: none; }
-        }
       `}</style>
     </div>
   );
