@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Download, Play, RotateCcw, AlertTriangle, Loader2, Image as ImageIcon, PlusSquare, CreditCard, ShoppingBag, ShieldCheck, Users, Home, ArrowRight, LayoutGrid, Cpu } from 'lucide-react';
+import { Download, Play, RotateCcw, AlertTriangle, Loader2, Image as ImageIcon, PlusSquare, CreditCard } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from "@clerk/clerk-react";
 
 export default function App() {
   const { userId } = useAuth();
   
-  // Estados Principais - Iniciando agora na tela de 'inicio' (Dashboard)
-  const [activeTab, setActiveTab] = useState('inicio');
+  // Estados Principais
+  const [activeTab, setActiveTab] = useState('gerar');
   const [prompt, setPrompt] = useState('');
   const [aspectRatio, setAspectRatio] = useState('1:1');
   const [inputImage, setInputImage] = useState(null);
@@ -20,10 +20,6 @@ export default function App() {
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   
-  // Mocks Visuais para as Novas Telas da Área de Membros
-  const [mockUserCredits, setMockUserCredits] = useState(10); 
-  const [mockIsAdmin, setMockIsAdmin] = useState(true); 
-
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -144,7 +140,7 @@ export default function App() {
     });
   };
 
-  // 4. Lógica de Geração da Imagem
+  // 4. Lógica de Geração da Imagem (Atualizada com input_images e prompt_strength)
   const generateImage = async () => {
     if (!prompt) { setError('O campo prompt é obrigatório.'); return; }
     if (!userId) { setError('Tem de iniciar sessão para gerar imagens.'); return; }
@@ -158,9 +154,12 @@ export default function App() {
     try {
       const inputPayload = { prompt, aspect_ratio: aspectRatio };
 
+      // Converte imagem para Base64 caso o utilizador tenha feito upload
       if (inputImage) {
         setProgressText('A processar imagem base...');
         const base64Image = await fileToBase64(inputImage);
+        
+        // CORREÇÃO CRÍTICA PARA O FLUX-2-PRO:
         inputPayload.input_images = [base64Image];
         inputPayload.prompt_strength = 0.75; 
       }
@@ -177,6 +176,7 @@ export default function App() {
       let prediction = await response.json();
       setProgressText('A gerar imagem...');
 
+      // Loop para verificar o estado da geração na Replicate
       while (prediction.status !== 'succeeded' && prediction.status !== 'failed') {
         await new Promise(resolve => setTimeout(resolve, 1000));
         const res = await fetch(`https://backend-gerador-ia.onrender.com/api/status/${prediction.id}?userId=${userId}`);
@@ -229,8 +229,6 @@ export default function App() {
     }
   };
 
-  const letters = ['H', 'U', 'B', 'I', 'M', 'A', 'G', 'E', 'M', '5', '4'];
-
   return (
     <div className="min-h-screen bg-black text-white font-sans overflow-hidden flex relative">
       
@@ -239,31 +237,75 @@ export default function App() {
 
       {/* --- ECRÃ DE BOAS-VINDAS (Não logado) --- */}
       <SignedOut>
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen w-full gap-16 px-4">
-          <div className="text-center space-y-4 animate-fadeIn">
-            <h1 className="text-7xl md:text-8xl font-black tracking-tighter text-white drop-shadow-2xl" style={{textShadow: '0 0 30px rgba(255,255,255,0.5)'}}>
-              HUB IA 54
-            </h1>
-            <p className="text-xl text-gray-300 font-light tracking-widest">
-              Plataforma Focada em Inteligência Artificial
-            </p>
-          </div>
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen w-full px-4 gap-0">
+          
+          {/* Glass card container */}
+          <div className="hub-landing-card animate-fadeIn">
+            {/* The animated moving border */}
+            <div className="hub-card-border-container" />
+            
+            <div className="relative z-10">
+              {/* Top bar decorativo */}
+              <div className="hub-card-topbar">
+                <span className="hub-dot" />
+                <span className="hub-dot" />
+                <span className="hub-dot" />
+                <span className="hub-topbar-label">HUB IA 54 — SISTEMA EM DESENVOLVIMENTO </span>
+              </div>
 
-          <div className="w-full overflow-hidden">
-            <div className="flex animate-infinite-scroll gap-4 justify-center px-4">
-              {[...letters, ...letters, ...letters].map((letter, i) => (
-                <div key={i} className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 border-2 border-white flex items-center justify-center text-2xl md:text-3xl font-bold text-white rounded-lg transition-all hover:scale-110" style={{ boxShadow: '0 0 20px rgba(255,255,255,0.4), inset 0 0 20px rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}>
-                  {letter}
+              {/* Logo / Título principal */}
+              <div className="hub-card-body">
+                <div className="hub-logo-block">
+                  <div className="hub-logo-badge">AI</div>
+                  <div>
+                    <h1 className="hub-title">HUB IA 54</h1>
+                    <p className="hub-subtitle">Plataforma Focada em Inteligência Artificial</p>
+                  </div>
                 </div>
-              ))}
+
+                {/* Divisor com neon */}
+                <div className="hub-divider" />
+
+                {/* Métricas / Features */}
+                <div className="hub-features-row">
+                  <div className="hub-feature-item">
+                    <span className="hub-feature-icon">◈</span>
+                    <span className="hub-feature-label">Geração de Imagens</span>
+                  </div>
+                  <div className="hub-feature-sep" />
+                  <div className="hub-feature-item">
+                    <span className="hub-feature-icon">◈</span>
+                    <span className="hub-feature-label">Modelos Avançados</span>
+                  </div>
+                  <div className="hub-feature-sep" />
+                  <div className="hub-feature-item">
+                    <span className="hub-feature-icon">◈</span>
+                    <span className="hub-feature-label">Histórico em Nuvem</span>
+                  </div>
+                </div>
+
+                {/* Divisor */}
+                <div className="hub-divider" />
+
+                {/* Descrição */}
+                <p className="hub-desc">
+                 Ferramentas de criação visual com inteligência artificial de última geração. 
+                 Resultados profissionais, interface limpa, sem distrações.
+                </p>
+
+                {/* Botão CTA */}
+                <SignInButton mode="modal">
+                  <button className="hub-cta-btn">
+                    <span className="hub-cta-label">Acessar Plataforma</span>
+                    <span className="hub-cta-arrow">→</span>
+                  </button>
+                </SignInButton>
+
+                {/* Rodapé do card */}
+                <p className="hub-card-footer">Acesso seguro · Dados encriptados by HUB IA </p>
+              </div>
             </div>
           </div>
-
-          <SignInButton mode="modal">
-            <button className="px-12 py-4 border-2 border-white text-white font-bold rounded-lg text-lg transition-all hover:bg-white hover:text-black hover:shadow-2xl cursor-pointer" style={{boxShadow: '0 0 20px rgba(255,255,255,0.3)'}}>
-              Começar Agora
-            </button>
-          </SignInButton>
         </div>
       </SignedOut>
 
@@ -276,41 +318,56 @@ export default function App() {
         </header>
 
         {/* MENU LATERAL - Efeito Vidro Jateado */}
-        <aside className="relative z-20 w-full md:w-64 h-screen border-r border-white/10 flex flex-col hidden md:flex" style={{ backgroundColor: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(16px)', boxShadow: '10px 0 30px rgba(0, 0, 0, 0.5)' }}>
-          <div className="p-8 border-b border-white/10">
-            <h1 className="text-2xl font-black tracking-tighter text-white" style={{textShadow: '0 0 20px rgba(255,255,255,0.3)'}}>HUB IA 54</h1>
+        <aside
+          className="relative z-20 w-full md:w-64 h-screen border-r border-white/10 flex-col hidden md:flex"
+          style={{
+            backgroundColor: 'rgba(10, 10, 10, 0.55)',
+            backdropFilter: 'blur(24px) saturate(1.2)',
+            WebkitBackdropFilter: 'blur(24px) saturate(1.2)',
+            boxShadow: '1px 0 0 rgba(255,255,255,0.06), 10px 0 40px rgba(0,0,0,0.6)',
+          }}
+        >
+          {/* Logo lateral */}
+          <div className="p-8 border-b border-white/8">
+            <div className="flex items-center gap-3">
+              <div className="sidebar-logo-badge">AI</div>
+              <div>
+                <h1 className="text-sm font-black tracking-widest text-white uppercase">HUB IA 54</h1>
+                <p className="text-xs text-white/50 tracking-widest mt-0.5 uppercase">Plataforma</p>
+              </div>
+            </div>
           </div>
 
-          <nav className="flex-1 p-4 space-y-2 mt-4">
-            <button onClick={() => setActiveTab('inicio')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-semibold text-sm ${activeTab === 'inicio' ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
-              <Home className="w-5 h-5" /> INÍCIO
+          {/* Navegação */}
+          <nav className="flex-1 p-5 space-y-2 mt-2">
+            <p className="text-xs text-white/50 uppercase tracking-widest font-semibold mb-4 px-2">Navegação</p>
+            
+            <button
+              onClick={() => setActiveTab('gerar')}
+              className={`sidebar-nav-btn ${activeTab === 'gerar' ? 'sidebar-nav-active' : 'sidebar-nav-idle'}`}
+            >
+              <PlusSquare className="w-4 h-4 flex-shrink-0" />
+              <span>Nova Geração</span>
             </button>
 
-            <button onClick={() => setActiveTab('gerar')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-semibold text-sm ${activeTab === 'gerar' ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
-              <PlusSquare className="w-5 h-5" /> NOVA GERAÇÃO
+            <button
+              onClick={() => setActiveTab('historico')}
+              className={`sidebar-nav-btn ${activeTab === 'historico' ? 'sidebar-nav-active' : 'sidebar-nav-idle'}`}
+            >
+              <ImageIcon className="w-4 h-4 flex-shrink-0" />
+              <span>Histórico</span>
             </button>
-
-            <button onClick={() => setActiveTab('historico')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-semibold text-sm ${activeTab === 'historico' ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
-              <ImageIcon className="w-5 h-5" /> HISTÓRICO
-            </button>
-
-            <button onClick={() => setActiveTab('comprar')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-semibold text-sm ${activeTab === 'comprar' ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
-              <ShoppingBag className="w-5 h-5" /> COMPRAR CRÉDITOS
-            </button>
-
-            {mockIsAdmin && (
-              <button onClick={() => setActiveTab('admin')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-semibold text-sm ${activeTab === 'admin' ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
-                <ShieldCheck className="w-5 h-5" /> PAINEL ADMIN
-              </button>
-            )}
           </nav>
 
-          <div className="p-6 border-t border-white/10">
-            <div className="p-4 rounded-xl border border-white/20 bg-white/5 flex items-center gap-3">
-              <CreditCard className="w-5 h-5 text-gray-300" />
-              <div className="flex flex-col">
-                <span className="text-xs text-white/50 uppercase tracking-wider">O Seu Saldo</span>
-                <span className="text-sm font-bold text-white tracking-wide">{mockUserCredits} Créditos</span> 
+          {/* Saldo / Status */}
+          <div className="p-5 border-t border-white/8">
+            <div className="sidebar-status-card">
+              <CreditCard className="w-4 h-4 text-white/60 flex-shrink-0" />
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs text-white/50 uppercase tracking-widest">Estado</span>
+                <span className="text-xs font-bold text-white/90 mt-0.5 flex items-center gap-1.5">
+                  <span className="status-dot" /> Ativo
+                </span>
               </div>
             </div>
           </div>
@@ -319,156 +376,153 @@ export default function App() {
         {/* CONTEÚDO CENTRAL */}
         <main className="relative z-10 flex-1 h-screen overflow-y-auto custom-scrollbar">
           
-          {/* TELA DE INÍCIO/DASHBOARD PRINCIPAL (Exibe primeiro pós-login) */}
-          {activeTab === 'inicio' && (
-            <div className="p-10 min-h-screen max-w-6xl space-y-12 animate-fadeIn">
-              <div>
-                <h2 className="text-4xl font-black text-white tracking-tight mb-2">Bem-vindo à Área de Membros</h2>
-                <p className="text-white/60 font-light tracking-wide text-lg">Selecione uma das soluções de inteligência artificial abaixo para começar.</p>
-              </div>
-
-              {/* Grid de Banners Grandes Interativos */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                
-                {/* Banner 1: Geração de Imagem (O Banner principal que leva à IA) */}
-                <div 
-                  onClick={() => setActiveTab('gerar')}
-                  className="group rounded-2xl border border-white/10 bg-white/5 p-8 flex flex-col justify-between min-h-[280px] cursor-pointer transition-all duration-500 hover:border-white/30 hover:bg-white/10 shadow-lg relative overflow-hidden"
-                  style={{ backdropFilter: 'blur(16px)' }}
-                >
-                  {/* Detalhe de fundo de marca d'água futurista */}
-                  <div className="absolute right-6 top-6 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
-                    <Cpu className="w-40 h-40 text-white" />
-                  </div>
-
-                  <div className="space-y-4 relative z-10">
-                    <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
-                      <PlusSquare className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="text-3xl font-black tracking-tight">Estúdio de Geração</h3>
-                    <p className="text-sm text-white/60 font-light max-w-sm leading-relaxed">Acesse a nossa ferramenta principal equipada com o Flux 2 Pro. Crie imagens surreais a partir de texto ou imagens de base.</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-white/80 group-hover:text-white pt-6 transition-colors">
-                    Acessar Ferramenta <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-2" />
-                  </div>
-                </div>
-
-                {/* Banner 2: Histórico/Galeria */}
-                <div 
-                  onClick={() => setActiveTab('historico')}
-                  className="group rounded-2xl border border-white/10 bg-white/5 p-8 flex flex-col justify-between min-h-[280px] cursor-pointer transition-all duration-500 hover:border-white/30 hover:bg-white/10 shadow-lg relative overflow-hidden"
-                  style={{ backdropFilter: 'blur(16px)' }}
-                >
-                  <div className="absolute right-6 top-6 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
-                    <LayoutGrid className="w-40 h-40 text-white" />
-                  </div>
-
-                  <div className="space-y-4 relative z-10">
-                    <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
-                      <ImageIcon className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="text-3xl font-black tracking-tight">Minhas Criações</h3>
-                    <p className="text-sm text-white/60 font-light max-w-sm leading-relaxed">Visualize toda a sua galeria de arte salva em nuvem, faça downloads imediatos em alta fidelidade e resgate os seus prompts.</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-white/80 group-hover:text-white pt-6 transition-colors">
-                    Abrir Histórico <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-2" />
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Seção Informativa Inferior Simplificada */}
-              <div className="p-6 rounded-xl border border-white/10 bg-white/3 flex flex-col md:flex-row items-center justify-between gap-4" style={{ backdropFilter: 'blur(10px)' }}>
-                <div className="flex items-center gap-4">
-                  <div className="text-2xl">🪙</div>
-                  <div>
-                    <h4 className="font-bold text-white">Precisa de mais poder de fogo?</h4>
-                    <p className="text-xs text-white/50 font-light">Seus créditos atuais dão suporte a novas gerações imediatas no estúdio.</p>
-                  </div>
-                </div>
-                <button onClick={() => setActiveTab('comprar')} className="px-6 py-2 border border-white/20 hover:border-white text-xs font-bold uppercase tracking-widest rounded-lg transition-all bg-white/5 cursor-pointer">
-                  Recarregar Saldo
-                </button>
-              </div>
-            </div>
-          )}
-          
-          {/* TELA 2: GERAR IMAGEM */}
+          {/* TELA 1: GERAR IMAGEM */}
           {activeTab === 'gerar' && (
             <div className="flex flex-col xl:flex-row min-h-screen">
+              
               {/* PAINEL DE CONTROLO ESQUERDO */}
-              <div className="w-full xl:w-[420px] p-8 space-y-6 border-r border-white/10" style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0,0,0,0.4)' }}>
-                <h2 className="text-3xl font-bold text-white mb-8 tracking-tight" style={{textShadow: '0 0 10px rgba(255,255,255,0.3)'}}>Criar Imagem</h2>
-
-                <div className="space-y-3">
-                  <label className="text-sm text-white/80 font-semibold uppercase tracking-widest">✨ Prompt *</label>
-                  <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} className="w-full bg-white/10 border border-white/30 rounded-lg p-4 text-white focus:outline-none focus:border-white h-28 placeholder-gray-500" placeholder="Descreva o cenário..." />
+              <div
+                className="w-full xl:w-[400px] p-8 space-y-6 border-r border-white/8 flex-shrink-0"
+                style={{
+                  backgroundColor: 'rgba(8, 8, 8, 0.5)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                }}
+              >
+                {/* Cabeçalho do painel */}
+                <div className="pb-2">
+                  <p className="text-xs text-white/50 uppercase tracking-widest font-semibold mb-1">Estúdio</p>
+                  <h2 className="text-2xl font-black text-white tracking-tight">Criar Imagem</h2>
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-sm text-white/80 font-semibold uppercase tracking-widest">📸 Imagem Base</label>
-                  <div onClick={() => fileInputRef.current?.click()} className="w-full border-2 border-dashed border-white/40 hover:border-white/70 rounded-lg p-6 text-center cursor-pointer transition-all bg-white/5">
-                    <p className="text-sm text-white/70">📄 Clique ou arraste uma imagem</p>
-                    {inputImage && <p className="text-xs text-green-400 mt-2 font-semibold">✅ Imagem carregada com sucesso</p>}
+                {/* Prompt */}
+                <div className="space-y-2">
+                  <label className="panel-label">Prompt <span className="text-white/50">(obrigatório)</span></label>
+                  <textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    className="panel-textarea"
+                    placeholder="Descreva o cenário em detalhe..."
+                    rows={4}
+                  />
+                </div>
+
+                {/* Upload de imagem base */}
+                <div className="space-y-2">
+                  <label className="panel-label">Imagem Base <span className="text-white/50">(opcional)</span></label>
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`panel-upload-zone ${inputImage ? 'panel-upload-success' : ''}`}
+                  >
+                    {inputImage ? (
+                      <div className="flex items-center gap-2 text-white/80">
+                        <span className="text-xs font-semibold uppercase tracking-wider">✓ Imagem carregada</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-1">
+                        <ImageIcon className="w-5 h-5 text-white/40" />
+                        <span className="text-xs text-white/50">Clique ou arraste uma imagem</span>
+                      </div>
+                    )}
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-sm text-white/80 font-semibold uppercase tracking-widest">⊞ Proporção</label>
-                  <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)} className="w-full bg-white/10 border border-white/30 rounded-lg p-3 text-white focus:outline-none transition-all [&>option]:bg-gray-900">
-                    <option value="1:1">1:1 (Quadrado)</option>
-                    <option value="16:9">16:9 (Paisagem)</option>
-                    <option value="9:16">9:16 (Stories/Reels)</option>
+                {/* Proporção */}
+                <div className="space-y-2">
+                  <label className="panel-label">Proporção</label>
+                  <select
+                    value={aspectRatio}
+                    onChange={(e) => setAspectRatio(e.target.value)}
+                    className="panel-select"
+                  >
+                    <option value="1:1">1:1 — Quadrado</option>
+                    <option value="16:9">16:9 — Paisagem</option>
+                    <option value="9:16">9:16 — Stories / Reels</option>
                   </select>
                 </div>
 
-                <div className="flex gap-3 pt-6 border-t border-white/20">
-                  <button onClick={resetInputs} disabled={loading} className="flex-1 py-3 px-4 border border-white/40 text-white hover:border-white/70 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all">
-                    <RotateCcw className="w-4 h-4 inline mr-1" /> Limpar
-                  </button>
-                  <button onClick={generateImage} disabled={loading || !prompt} className="flex-[2] py-3 bg-white text-black font-bold rounded-lg text-sm uppercase tracking-wide cursor-pointer disabled:opacity-50 transition-all" style={{boxShadow: '0 0 20px rgba(255,255,255,0.4)'}}>
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin inline mr-1" /> : <Play className="w-4 h-4 inline mr-1" />} {loading ? 'A processar...' : 'Gerar'}
-                  </button>
-                </div>
-
-                {error && (
-                  <div className="p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                    <p>{error}</p>
+                {/* Divisor */}
+                <div className="border-t border-white/8 pt-6 space-y-3">
+                  {/* Ações */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={resetInputs}
+                      disabled={loading}
+                      className="panel-btn-secondary"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Limpar</span>
+                    </button>
+                    <button
+                      onClick={generateImage}
+                      disabled={loading || !prompt}
+                      className="panel-btn-primary"
+                    >
+                      {loading
+                        ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /><span>A processar...</span></>
+                        : <><Play className="w-3.5 h-3.5" /><span>Gerar</span></>
+                      }
+                    </button>
                   </div>
-                )}
+
+                  {/* Erro */}
+                  {error && (
+                    <div className="panel-error">
+                      <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      <p>{error}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* ÁREA DA IMAGEM DIREITA */}
               <div className="flex-1 flex flex-col items-center justify-center p-8 relative min-h-[500px]">
                 {loading ? (
-                  <div className="text-center space-y-6">
-                    <div className="w-20 h-20 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" style={{boxShadow: '0 0 20px rgba(255,255,255,0.4)'}}></div>
-                    <p className="text-white/80 text-base font-light tracking-wide animate-pulse">{progressText}</p>
+                  <div className="text-center space-y-6 flex flex-col items-center">
+                    <div className="loading-spinner" />
+                    <p className="text-white/50 text-sm font-light tracking-widest uppercase animate-pulse">{progressText}</p>
                   </div>
                 ) : generatedImage ? (
-                  <div className="w-full max-w-3xl space-y-6">
+                  <div className="w-full max-w-3xl space-y-5">
                     <div className="relative group flex justify-center">
-                      <img src={generatedImage} alt="Gerado pela IA" className="w-full max-h-[65vh] object-contain rounded-lg" style={{boxShadow: '0 0 30px rgba(255,255,255,0.3)'}} />
+                      <img
+                        src={generatedImage}
+                        alt="Gerado pela IA"
+                        className="w-full max-h-[65vh] object-contain rounded-lg"
+                        style={{ boxShadow: '0 0 60px rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.08)' }}
+                      />
                     </div>
-                    <div className="flex items-center justify-between p-4 rounded-lg border border-white/20 bg-white/5 backdrop-blur-md">
-                      <div className="text-sm text-white/80 font-light">
-                        <p>Gerado em <strong className="text-white font-semibold">{generationTime}s</strong></p>
+                    <div
+                      className="flex items-center justify-between p-4 rounded-lg border border-white/10"
+                      style={{ backgroundColor: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(16px)' }}
+                    >
+                      <div className="text-sm text-white/50 font-light">
+                        Gerado em <strong className="text-white/90 font-semibold">{generationTime}s</strong>
                       </div>
-                      <button onClick={() => downloadImage()} className="px-6 py-2 border border-white/40 hover:bg-white/10 hover:border-white/70 rounded-lg text-white text-sm flex items-center gap-2 transition-all font-semibold uppercase tracking-wide cursor-pointer">
-                        <Download className="w-4 h-4" /> Transferir
+                      <button
+                        onClick={() => downloadImage()}
+                        className="result-download-btn"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Transferir</span>
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center space-y-6 flex flex-col items-center opacity-70">
-                    <div className="w-32 h-32 border-2 border-dashed border-white/40 rounded-lg flex items-center justify-center text-6xl">🎨</div>
+                  <div className="text-center space-y-5 flex flex-col items-center opacity-70">
+                    <div className="empty-state-icon relative">
+                      <span className="text-3xl font-black text-transparent bg-clip-text animate-pulse"
+                            style={{
+                              WebkitTextStroke: '1.5px rgba(255, 255, 255, 0.9)',
+                              textShadow: '0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.6), 0 0 30px #fff'
+                            }}>
+                        H
+                      </span>
+                    </div>
                     <div>
-                      <p className="text-xl font-light text-white/80">A tua imagem aparecerá aqui</p>
-                      <p className="text-sm text-gray-500 mt-2">Descreva o cenário ao lado para começar</p>
+                      <p className="text-lg font-light text-white/80 tracking-wide">A sua imagem aparecerá aqui</p>
+                      <p className="text-sm text-white/50 mt-1 font-light">Configure o prompt e clique em Gerar</p>
                     </div>
                   </div>
                 )}
@@ -476,33 +530,56 @@ export default function App() {
             </div>
           )}
 
-          {/* TELA 3: HISTÓRICO DE IMAGENS */}
+          {/* TELA 2: HISTÓRICO DE IMAGENS */}
           {activeTab === 'historico' && (
-            <div className="p-10 min-h-screen">
-              <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">O Meu Histórico</h2>
-              <p className="text-white/60 mb-10 font-light tracking-wide">Todas as tuas artes salvas na nuvem.</p>
+            <div className="p-8 md:p-10 min-h-screen">
+              <div className="mb-10">
+                <p className="text-xs text-white/50 uppercase tracking-widest font-semibold mb-1">Arquivo</p>
+                <h2 className="text-2xl font-black text-white tracking-tight">O Meu Histórico</h2>
+                <p className="text-white/60 mt-1 text-sm font-light">Todas as criações guardadas na nuvem.</p>
+              </div>
               
               {loadingHistory ? (
-                <div className="flex items-center justify-center h-64"><Loader2 className="w-10 h-10 animate-spin text-white" /></div>
+                <div className="flex items-center justify-center h-64">
+                  <Loader2 className="w-8 h-8 animate-spin text-white/50" />
+                </div>
               ) : history.length === 0 ? (
-                <p className="text-white/40 italic">Ainda não geraste nenhuma imagem nesta conta.</p>
+                <div className="flex flex-col items-center justify-center h-64 gap-4 opacity-70">
+                  <div className="empty-state-icon">
+                    <ImageIcon className="w-8 h-8 text-white/40" />
+                  </div>
+                  <p className="text-white/60 text-sm font-light tracking-wide">Nenhuma imagem gerada ainda.</p>
+                </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                   {history.map((item) => (
-                    <div key={item.id} className="group relative rounded-xl overflow-hidden border border-white/10 bg-white/5 transition-all duration-300 hover:border-white/30 flex flex-col justify-between" style={{ backdropFilter: 'blur(10px)' }}>
-                      <div className="aspect-square w-full bg-black/40 relative overflow-hidden flex items-center justify-center">
-                        <img src={item.image_url} alt={item.prompt} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                    <div
+                      key={item.id}
+                      className="history-card group"
+                    >
+                      <div className="aspect-square w-full bg-black relative overflow-hidden">
+                        <img
+                          src={item.image_url}
+                          alt={item.prompt}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
                         
                         {/* Camada Hover */}
-                        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 backdrop-blur-xs">
-                          <p className="text-xs text-white/90 line-clamp-4 font-light tracking-wide mb-3">"{item.prompt}"</p>
-                          <button onClick={() => downloadImage(item.image_url)} className="w-full py-2 bg-white text-black font-bold text-xs uppercase tracking-widest rounded-lg transition-all hover:bg-gray-200 flex items-center justify-center gap-2 cursor-pointer">
-                            <Download className="w-3 h-3" /> Transferir
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4"
+                          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)', backdropFilter: 'blur(2px)' }}>
+                          <p className="text-xs text-white/90 line-clamp-3 font-light tracking-wide mb-3 leading-relaxed">"{item.prompt}"</p>
+                          <button
+                            onClick={() => downloadImage(item.image_url)}
+                            className="history-download-btn"
+                          >
+                            <Download className="w-3 h-3" />
+                            <span>Transferir</span>
                           </button>
                         </div>
                       </div>
-                      <div className="p-4 border-t border-white/5 bg-black/20">
-                        <p className="text-xs text-white/50 truncate font-light">"{item.prompt}"</p>
+                      <div className="px-4 py-3 border-t border-white/6">
+                        <p className="text-xs text-white/50 truncate font-light leading-relaxed">"{item.prompt}"</p>
                       </div>
                     </div>
                   ))}
@@ -511,127 +588,464 @@ export default function App() {
             </div>
           )}
 
-          {/* TELA 4: COMPRAR CRÉDITOS */}
-          {activeTab === 'comprar' && (
-            <div className="p-10 min-h-screen max-w-6xl">
-              <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">Adquirir Créditos</h2>
-              <p className="text-white/60 mb-12 font-light tracking-wide">Escolha o plano ideal para continuar gerando suas artes em ultra definição.</p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-8 flex flex-col justify-between transition-all duration-300 hover:border-white/30" style={{ backdropFilter: 'blur(16px)' }}>
-                  <div className="space-y-4">
-                    <span className="text-xs font-bold tracking-widest text-white/40 uppercase">Essencial</span>
-                    <h3 className="text-2xl font-bold">50 Créditos</h3>
-                    <p className="text-sm text-white/60 font-light">Ideal para experimentações rápidas e testes de conceitos.</p>
-                    <div className="pt-4 text-3xl font-black tracking-tight">R$ 9,90</div>
-                  </div>
-                  <button className="mt-8 w-full py-3 bg-white text-black font-bold text-sm uppercase tracking-wider rounded-xl transition-all hover:bg-gray-200 cursor-pointer">
-                    Selecionar
-                  </button>
-                </div>
-
-                <div className="rounded-2xl border-2 border-white bg-white/10 p-8 flex flex-col justify-between relative shadow-[0_0_40px_rgba(255,255,255,0.15)]" style={{ backdropFilter: 'blur(16px)' }}>
-                  <div className="absolute -top-3 right-6 bg-white text-black text-[10px] font-black tracking-widest px-3 py-1 rounded-full uppercase">
-                    Mais Popular
-                  </div>
-                  <div className="space-y-4">
-                    <span className="text-xs font-bold tracking-widest text-white uppercase">Avançado</span>
-                    <h3 className="text-2xl font-bold">150 Créditos</h3>
-                    <p className="text-sm text-white/80 font-light">Para criadores independentes e entusiastas de alta performance.</p>
-                    <div className="pt-4 text-3xl font-black tracking-tight">R$ 24,90</div>
-                  </div>
-                  <button className="mt-8 w-full py-3 bg-white text-black font-bold text-sm uppercase tracking-wider rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all hover:bg-gray-200 cursor-pointer">
-                    Selecionar
-                  </button>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-8 flex flex-col justify-between transition-all duration-300 hover:border-white/30" style={{ backdropFilter: 'blur(16px)' }}>
-                  <div className="space-y-4">
-                    <span className="text-xs font-bold tracking-widest text-white/40 uppercase">Ilimitado</span>
-                    <h3 className="text-2xl font-bold">500 Créditos</h3>
-                    <p className="text-sm text-white/60 font-light">Lote completo para agências, profissionais e projetos de larga escala.</p>
-                    <div className="pt-4 text-3xl font-black tracking-tight">R$ 69,90</div>
-                  </div>
-                  <button className="mt-8 w-full py-3 bg-white text-black font-bold text-sm uppercase tracking-wider rounded-xl transition-all hover:bg-gray-200 cursor-pointer">
-                    Selecionar
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TELA 5: PAINEL ADMINISTRATIVO */}
-          {activeTab === 'admin' && (
-            <div className="p-10 min-h-screen max-w-6xl">
-              <div className="flex items-center gap-4 mb-2">
-                <Users className="w-8 h-8 text-white" />
-                <h2 className="text-3xl font-bold text-white tracking-tight">Painel de Controle Administrativo</h2>
-              </div>
-              <p className="text-white/60 mb-10 font-light tracking-wide">Gerencie os usuários do ecossistema e adicione saldos manualmente.</p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className="border border-white/10 bg-white/5 p-6 rounded-xl" style={{ backdropFilter: 'blur(10px)' }}>
-                  <div className="text-xs text-white/50 uppercase tracking-widest font-semibold mb-1">Total de Membros</div>
-                  <div className="text-3xl font-black">1.248</div>
-                </div>
-                <div className="border border-white/10 bg-white/5 p-6 rounded-xl" style={{ backdropFilter: 'blur(10px)' }}>
-                  <div className="text-xs text-white/50 uppercase tracking-widest font-semibold mb-1">Imagens Geradas (Mês)</div>
-                  <div className="text-3xl font-black">42.890</div>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden" style={{ backdropFilter: 'blur(16px)' }}>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-white/10 bg-white/5 text-xs tracking-wider text-white/60 font-bold uppercase">
-                        <th className="p-4">Identificador (ID)</th>
-                        <th className="p-4">E-mail Cadastrado</th>
-                        <th className="p-4 text-center">Créditos Atual</th>
-                        <th className="p-4 text-right">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-sm font-light text-white/90 divide-y divide-white/5">
-                      <tr>
-                        <td className="p-4 font-mono text-xs text-white/40">user_2xF98aJk...</td>
-                        <td className="p-4">dominica.nunessouza@gmail.com</td>
-                        <td className="p-4 text-center font-semibold">10</td>
-                        <td className="p-4 text-right">
-                          <button className="px-3 py-1 border border-white/20 hover:border-white text-xs uppercase tracking-wide rounded-lg font-bold transition-all cursor-pointer">
-                            + Dar Crédito
-                          </button>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="p-4 font-mono text-xs text-white/40">user_3A89bKz...</td>
-                        <td className="p-4">contato@hub54.com.br</td>
-                        <td className="p-4 text-center font-semibold text-green-400">Admin</td>
-                        <td className="p-4 text-right">
-                          <button className="px-3 py-1 border border-white/20 hover:border-white text-xs uppercase tracking-wide rounded-lg font-bold transition-all cursor-pointer">
-                            + Dar Crédito
-                          </button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
         </main>
       </SignedIn>
 
-      {/* ESTILOS (Scrollbar customizada e Animações) */}
-      <style jsx>{`
-        @keyframes infinite-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .animate-infinite-scroll { animation: infinite-scroll 20s linear infinite; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fadeIn { animation: fadeIn 1s ease-out forwards; }
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+      {/* ESTILOS GLOBAIS */}
+      <style>{`
+        /* ========== ANIMAÇÕES ========== */
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        /* ========== SCROLLBAR ========== */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 99px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+        /* ========== LANDING CARD ========== */
+        .hub-landing-card {
+          width: 100%;
+          max-width: 520px;
+          background: rgba(12, 12, 12, 0.72);
+          backdrop-filter: blur(32px) saturate(1.4);
+          -webkit-backdrop-filter: blur(32px) saturate(1.4);
+          border: 1px solid rgba(255,255,255,0.05); /* diminished slightly since animated border covers it mostly */
+          border-radius: 16px;
+          box-shadow:
+            0 0 0 1px rgba(255,255,255,0.04) inset,
+            0 32px 80px rgba(0,0,0,0.8),
+            0 0 60px rgba(255,255,255,0.03);
+          position: relative;
+        }
+
+        /* LIGHT BORDER TRAVELLING EFFECT */
+        .hub-card-border-container {
+           position: absolute;
+           inset: 0;
+           border-radius: 16px;
+           overflow: hidden;
+           pointer-events: none;
+           padding: 1.5px;
+           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+           -webkit-mask-composite: xor;
+           mask-composite: exclude;
+           z-index: 20;
+        }
+        .hub-card-border-container::before {
+           content: "";
+           position: absolute;
+           top: -50%; left: -50%;
+           width: 200%; height: 200%;
+           background: conic-gradient(transparent 250deg, rgba(255,255,255,0.9) 360deg);
+           animation: spin 3.5s linear infinite;
+        }
+
+        .hub-card-topbar {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 12px 20px;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
+          background: rgba(255,255,255,0.02);
+          border-top-left-radius: 16px;
+          border-top-right-radius: 16px;
+        }
+        .hub-dot {
+          width: 7px; height: 7px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.12);
+        }
+        .hub-topbar-label {
+          margin-left: 8px;
+          font-size: 10px;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.50);
+          font-weight: 600;
+        }
+
+        .hub-card-body {
+          padding: 40px 40px 32px;
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+        }
+
+        .hub-logo-block {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          margin-bottom: 28px;
+        }
+        .hub-logo-badge {
+          width: 48px; height: 48px;
+          border-radius: 10px;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.14);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 13px; font-weight: 900; letter-spacing: 0.05em;
+          color: rgba(255,255,255,0.85);
+          box-shadow: 0 0 18px rgba(255,255,255,0.06) inset;
+          flex-shrink: 0;
+        }
+        .hub-title {
+          font-size: 28px;
+          font-weight: 900;
+          letter-spacing: -0.02em;
+          color: #ffffff;
+          line-height: 1;
+        }
+        .hub-subtitle {
+          font-size: 12px;
+          color: rgba(255,255,255,0.80);
+          margin-top: 5px;
+          letter-spacing: 0.04em;
+          font-weight: 400;
+        }
+
+        .hub-divider {
+          height: 1px;
+          background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+          margin: 20px 0;
+        }
+
+        .hub-features-row {
+          display: flex;
+          align-items: center;
+          gap: 0;
+          margin: 0;
+        }
+        .hub-feature-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex: 1;
+        }
+        .hub-feature-icon {
+          font-size: 9px;
+          color: rgba(255,255,255,0.40);
+        }
+        .hub-feature-label {
+          font-size: 10.5px;
+          color: rgba(255,255,255,0.85);
+          letter-spacing: 0.02em;
+          font-weight: 500;
+        }
+        .hub-feature-sep {
+          width: 1px; height: 20px;
+          background: rgba(255,255,255,0.08);
+          margin: 0 12px;
+          flex-shrink: 0;
+        }
+
+        .hub-desc {
+          font-size: 13.5px;
+          color: rgba(255,255,255,0.80);
+          line-height: 1.65;
+          font-weight: 300;
+          margin-top: 4px;
+          margin-bottom: 28px;
+        }
+
+        /* CTA Button */
+        .hub-cta-btn {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          padding: 15px 22px;
+          background: rgba(255,255,255,0.96);
+          color: #000;
+          border: none;
+          border-radius: 10px;
+          font-size: 13px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          box-shadow: 0 0 30px rgba(255,255,255,0.12), 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .hub-cta-btn:hover {
+          background: #fff;
+          box-shadow: 0 0 50px rgba(255,255,255,0.22), 0 8px 32px rgba(0,0,0,0.5);
+          transform: translateY(-1px);
+        }
+        .hub-cta-label { letter-spacing: 0.1em; }
+        .hub-cta-arrow { font-size: 16px; font-weight: 300; }
+
+        .hub-card-footer {
+          font-size: 10px;
+          color: rgba(255,255,255,0.70);
+          text-align: center;
+          margin-top: 20px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        /* ========== SIDEBAR ========== */
+        .sidebar-logo-badge {
+          width: 34px; height: 34px;
+          border-radius: 8px;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.12);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 10px; font-weight: 900;
+          color: rgba(255,255,255,0.7);
+          letter-spacing: 0.05em;
+        }
+        .sidebar-nav-btn {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 14px;
+          border-radius: 8px;
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          transition: all 0.2s ease;
+          border: none;
+          cursor: pointer;
+        }
+        .sidebar-nav-active {
+          background: rgba(255,255,255,0.10);
+          color: #fff;
+          border: 1px solid rgba(255,255,255,0.15);
+          box-shadow: 0 0 20px rgba(255,255,255,0.04) inset;
+        }
+        .sidebar-nav-idle {
+          background: transparent;
+          color: rgba(255,255,255,0.55);
+        }
+        .sidebar-nav-idle:hover {
+          background: rgba(255,255,255,0.08);
+          color: rgba(255,255,255,0.85);
+        }
+        .sidebar-status-card {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 14px;
+          border-radius: 8px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.07);
+        }
+        .status-dot {
+          display: inline-block;
+          width: 5px; height: 5px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.8);
+        }
+
+        /* ========== PAINEL DE CONTROLO ========== */
+        .panel-label {
+          display: block;
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+          color: rgba(255,255,255,0.65);
+        }
+        .panel-textarea {
+          width: 100%;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.10);
+          border-radius: 8px;
+          padding: 14px;
+          color: #fff;
+          font-size: 13px;
+          font-weight: 300;
+          line-height: 1.6;
+          resize: none;
+          outline: none;
+          transition: border-color 0.2s;
+          font-family: inherit;
+        }
+        .panel-textarea::placeholder { color: rgba(255,255,255,0.30); }
+        .panel-textarea:focus { border-color: rgba(255,255,255,0.40); background: rgba(255,255,255,0.06); }
+
+        .panel-upload-zone {
+          width: 100%;
+          border: 1px dashed rgba(255,255,255,0.20);
+          border-radius: 8px;
+          padding: 22px;
+          text-align: center;
+          cursor: pointer;
+          background: rgba(255,255,255,0.02);
+          transition: all 0.2s ease;
+        }
+        .panel-upload-zone:hover {
+          border-color: rgba(255,255,255,0.40);
+          background: rgba(255,255,255,0.06);
+        }
+        .panel-upload-success {
+          border-color: rgba(255,255,255,0.40);
+          border-style: solid;
+          background: rgba(255,255,255,0.05);
+        }
+
+        .panel-select {
+          width: 100%;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.10);
+          border-radius: 8px;
+          padding: 11px 14px;
+          color: #fff;
+          font-size: 13px;
+          font-weight: 400;
+          outline: none;
+          transition: border-color 0.2s;
+          cursor: pointer;
+        }
+        .panel-select:focus { border-color: rgba(255,255,255,0.40); }
+        .panel-select option { background: #111; }
+
+        .panel-btn-secondary {
+          flex: 1;
+          display: flex; align-items: center; justify-content: center; gap: 6px;
+          padding: 11px 14px;
+          border: 1px solid rgba(255,255,255,0.12);
+          background: transparent;
+          color: rgba(255,255,255,0.70);
+          border-radius: 8px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .panel-btn-secondary:hover:not(:disabled) {
+          border-color: rgba(255,255,255,0.40);
+          color: #fff;
+        }
+        .panel-btn-secondary:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .panel-btn-primary {
+          flex: 2;
+          display: flex; align-items: center; justify-content: center; gap: 6px;
+          padding: 11px 14px;
+          background: rgba(255,255,255,0.95);
+          color: #000;
+          border: none;
+          border-radius: 8px;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.10em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: all 0.2s;
+          box-shadow: 0 0 24px rgba(255,255,255,0.14);
+        }
+        .panel-btn-primary:hover:not(:disabled) {
+          background: #fff;
+          box-shadow: 0 0 36px rgba(255,255,255,0.22);
+          transform: translateY(-1px);
+        }
+        .panel-btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+        .panel-error {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 12px 14px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 8px;
+          color: rgba(255,255,255,0.75);
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        /* ========== LOADING SPINNER ========== */
+        .loading-spinner {
+          width: 44px; height: 44px;
+          border: 1px solid rgba(255,255,255,0.10);
+          border-top-color: rgba(255,255,255,0.70);
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        /* ========== EMPTY STATE ========== */
+        .empty-state-icon {
+          width: 80px; height: 80px;
+          border: 1px dashed rgba(255,255,255,0.20);
+          border-radius: 12px;
+          display: flex; align-items: center; justify-content: center;
+          background: rgba(255,255,255,0.04);
+        }
+
+        /* ========== RESULT DOWNLOAD ========== */
+        .result-download-btn {
+          display: flex; align-items: center; gap: 6px;
+          padding: 9px 18px;
+          border: 1px solid rgba(255,255,255,0.14);
+          background: transparent;
+          color: rgba(255,255,255,0.80);
+          border-radius: 7px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .result-download-btn:hover {
+          border-color: rgba(255,255,255,0.50);
+          color: #fff;
+          background: rgba(255,255,255,0.08);
+        }
+
+        /* ========== HISTORY CARD ========== */
+        .history-card {
+          border-radius: 10px;
+          overflow: hidden;
+          border: 1px solid rgba(255,255,255,0.07);
+          background: rgba(255,255,255,0.02);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          transition: border-color 0.25s, box-shadow 0.25s;
+        }
+        .history-card:hover {
+          border-color: rgba(255,255,255,0.25);
+          box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+        }
+
+        .history-download-btn {
+          width: 100%;
+          display: flex; align-items: center; justify-content: center; gap: 6px;
+          padding: 9px;
+          background: rgba(255,255,255,0.92);
+          color: #000;
+          border: none;
+          border-radius: 6px;
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.10em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+        .history-download-btn:hover { background: #fff; }
+
+        /* ========== RESPONSIVIDADE MOBILE ========== */
+        @media (max-width: 768px) {
+          .hub-card-body { padding: 28px 24px 24px; }
+          .hub-title { font-size: 22px; }
+          .hub-features-row { flex-wrap: wrap; gap: 8px; }
+          .hub-feature-sep { display: none; }
+        }
       `}</style>
     </div>
   );
