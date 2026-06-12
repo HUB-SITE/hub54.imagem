@@ -247,7 +247,7 @@ export default function App() {
               <span className="hub-dot" />
               <span className="hub-dot" />
               <span className="hub-dot" />
-              <span className="hub-topbar-label">HUB IA 54 — SISTEMA OPERACIONAL</span>
+              <span className="hub-topbar-label">HUB IA 54 — SISTEMA EM DESENVOLVIMENTO </span>
             </div>
 
             {/* Logo / Título principal */}
@@ -256,7 +256,7 @@ export default function App() {
                 <div className="hub-logo-badge">AI</div>
                 <div>
                   <h1 className="hub-title">HUB IA 54</h1>
-                  <p className="hub-subtitle">Plataforma Profissional de Inteligência Artificial</p>
+                  <p className="hub-subtitle">Plataforma Focada em Inteligência Artificial</p>
                 </div>
               </div>
 
@@ -286,20 +286,20 @@ export default function App() {
 
               {/* Descrição */}
               <p className="hub-desc">
-                Aceda a ferramentas de criação visual com inteligência artificial de última geração. 
-                Resultados profissionais, interface limpa, sem distrações.
+               Ferramentas de criação visual com inteligência artificial de última geração. 
+               Resultados profissionais, interface limpa, sem distrações.
               </p>
 
               {/* Botão CTA */}
               <SignInButton mode="modal">
                 <button className="hub-cta-btn">
-                  <span className="hub-cta-label">Aceder à Plataforma</span>
+                  <span className="hub-cta-label">         Acessar Plataforma</span>
                   <span className="hub-cta-arrow">→</span>
                 </button>
               </SignInButton>
 
               {/* Rodapé do card */}
-              <p className="hub-card-footer">Acesso seguro · Dados encriptados · FLUX-2-Pro</p>
+              <p className="hub-card-footer">Acesso seguro · Dados encriptados by HUB IA </p>
             </div>
           </div>
 
